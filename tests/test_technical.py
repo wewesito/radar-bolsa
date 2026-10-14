@@ -72,8 +72,10 @@ def test_support_resistance_on_oscillating_price():
     t = np.arange(120)
     close = 100 + 10 * np.sin(t / 5)
     close[-1] = 100
-    df = pd.DataFrame({"High": close + 0.5, "Low": close - 0.5, "Close": close},
-                      index=pd.date_range("2026-01-01", periods=120))
+    df = pd.DataFrame(
+        {"High": close + 0.5, "Low": close - 0.5, "Close": close},
+        index=pd.date_range("2026-01-01", periods=120),
+    )
     levels = support_resistance(df)
     sup = [lv for lv in levels if lv.kind == "soporte"]
     res = [lv for lv in levels if lv.kind == "resistencia"]
@@ -96,3 +98,15 @@ def test_suspicious_jumps():
     jumps = suspicious_jumps(series([10, 10.5, 21, 21]))
     assert len(jumps) == 1
     assert jumps.iloc[0] == pytest.approx(1.0)
+
+
+def test_observations_uptrend_and_neutral_language():
+    from radar.indicators.summary import technical_observations
+
+    s = series(np.linspace(50, 150, 300))
+    obs = {o.indicator: o for o in technical_observations(s)}
+    assert obs["SMA 200"].tone == "alcista"
+    assert obs["RSI 14"].text.startswith("RSI 100")
+    text = " ".join(o.text for o in obs.values()).lower()
+    for word in ("compra ", "vende", "deberías", "recomend"):
+        assert word not in text  # nunca órdenes ni recomendaciones

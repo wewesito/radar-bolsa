@@ -2,9 +2,10 @@
 
 from datetime import UTC, datetime
 
+import pandas as pd
 import pytest
 
-from radar.data.yahoo import parse_metrics, parse_quote
+from radar.data.yahoo import clean_ohlc, parse_metrics, parse_quote
 from radar.errors import TickerNotFoundError
 
 NOW = datetime(2026, 10, 14, 10, 0, tzinfo=UTC)
@@ -78,3 +79,19 @@ def test_etf_metrics_units():
     assert m["expense_ratio"] == pytest.approx(0.002)
     assert m["ytd_return"] == pytest.approx(0.125)
     assert m["return_3y"] == pytest.approx(0.23)
+
+
+def test_clean_ohlc_drops_non_positive_and_missing():
+    df = pd.DataFrame(
+        {
+            "Open": [-0.1, 1.0, 1.0, 2.0],
+            "High": [-0.1, 1.2, 1.1, 2.1],
+            "Low": [-0.2, 0.9, 0.9, 1.9],
+            "Close": [-0.1, 1.1, None, 2.0],
+            "Volume": [10, 10, 10, 10],
+            "Dividends": 0.0,
+        }
+    )
+    out = clean_ohlc(df)
+    assert list(out["Close"]) == [1.1, 2.0]
+    assert list(out.columns) == ["Open", "High", "Low", "Close", "Volume"]
