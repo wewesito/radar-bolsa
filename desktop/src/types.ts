@@ -232,3 +232,27 @@ export type Question = {
   options: [string, string][];
   values?: string[];
 };
+
+export type BacktestMetrics = {
+  total_return: number;
+  cagr: number;
+  volatility: number;
+  max_drawdown: number;
+  return_per_risk: number | null;
+};
+
+export type BacktestResult = {
+  built_at: string;
+  source: string;
+  dates: string[];
+  series: Record<string, (number | null)[]>;
+  metrics: Record<string, BacktestMetrics>;
+  yearly: Record<string, Record<string, number>>;
+  last_selection: { date: string; picks: { ticker: string; score: number }[] } | null;
+  rebalances: number;
+  config: { top_n: number; rebalance_weeks: number; cost: number };
+  universe_size: number;
+  failed: string[];
+};
+
+export type BacktestState = { result: BacktestResult | null; running: boolean; error: string | null };

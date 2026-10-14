@@ -28,6 +28,7 @@ export type Page =
   | { name: "cartera" }
   | { name: "invertir" }
   | { name: "aprender" }
+  | { name: "metodologia" }
   | { name: "perfil" }
   | { name: "ajustes" };
 
@@ -38,6 +39,7 @@ const NAV: { name: Page["name"]; label: string; icon: ReactNode; soon?: string }
   { name: "cartera", label: "Mi cartera", icon: <IconWallet />, soon: "Pronto" },
   { name: "invertir", label: "Cómo invertir", icon: <IconBook />, soon: "Pronto" },
   { name: "aprender", label: "Aprender", icon: <IconCap /> },
+  { name: "metodologia", label: "Metodología", icon: <IconSliders /> },
 ];
 
 export function Sidebar({ page, go }: { page: Page; go: (p: Page) => void }) {

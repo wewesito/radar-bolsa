@@ -6,6 +6,7 @@ import { Disclaimer, ErrorBox, GlossaryProvider } from "./components/ui";
 import { Detalle } from "./pages/Detalle";
 import { Espana } from "./pages/Espana";
 import { Ajustes, Aprender, Inicio, Proximamente } from "./pages/Otras";
+import { Metodologia } from "./pages/Metodologia";
 import { Perfil } from "./pages/Perfil";
 import { Recomendaciones } from "./pages/Recomendaciones";
 import type { Answers } from "./types";
@@ -16,7 +17,7 @@ type Theme = "light" | "dark";
 function pageFromHash(): Page {
   const [name, arg] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (name === "detalle" && arg) return { name: "detalle", ticker: decodeURIComponent(arg) };
-  const simple = ["inicio", "recs", "espana", "cartera", "invertir", "aprender", "perfil", "ajustes"];
+  const simple = ["inicio", "recs", "espana", "cartera", "invertir", "aprender", "metodologia", "perfil", "ajustes"];
   return simple.includes(name) ? ({ name } as Page) : { name: "recs" };
 }
 
@@ -144,6 +145,7 @@ export function App() {
   else if (page.name === "perfil") body = <Perfil firstTime={false} onDone={() => { profile.reload(); go({ name: "recs" }); }} />;
   else if (page.name === "ajustes") body = <Ajustes status={status} onRebuild={rebuild} />;
   else if (page.name === "aprender") body = <Aprender />;
+  else if (page.name === "metodologia") body = <Metodologia />;
   else if (page.name === "cartera")
     body = <Proximamente title="Mi cartera" text="La cartera simulada (operaciones, valoración en euros y comparación con un índice) y las alertas con notificaciones de escritorio llegan en la fase 4. Mientras tanto siguen disponibles en la versión anterior (Streamlit)." />;
   else
