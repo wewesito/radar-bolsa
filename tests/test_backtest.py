@@ -103,3 +103,20 @@ def test_run_backtest_aligns_benchmarks_to_base_100():
 def test_too_short_history_raises():
     with pytest.raises(ValueError):
         simulate(panel(A=growth(0.01)).iloc[:40], BacktestConfig())
+
+
+def test_drop_suspect_removes_corrupt_series():
+    from radar.backtest.engine import drop_suspect
+
+    idx = pd.date_range("2024-01-05", periods=6, freq="W-FRI")
+    prices = pd.DataFrame(
+        {
+            "ok": [100, 101, 99, 102, 103, 104],
+            "spike": [10, 10, 10_000, 10, 10, 10],
+            "crash": [50, 50, 5, 5, 5, 5],
+        },
+        index=idx,
+        dtype=float,
+    )
+    clean, dropped = drop_suspect(prices)
+    assert dropped == ["crash", "spike"] and list(clean.columns) == ["ok"]

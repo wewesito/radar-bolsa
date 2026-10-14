@@ -5,11 +5,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from radar.backtest.data import load_benchmarks, load_prices
-from radar.backtest.engine import BacktestResult, run_backtest
+from radar.backtest.engine import BacktestResult, drop_suspect, run_backtest
 from radar.data.service import MarketDataService
 from radar.universe import UniverseSnapshot
 
-CACHE_KEY = "backtest:result:v1"
+CACHE_KEY = "backtest:result:v2"  # v2: sin valores con datos sospechosos
 
 
 @dataclass
@@ -65,7 +65,9 @@ class BacktestRunner:
             stocks = df[df["quote_type"] == "EQUITY"]
             currencies = dict(zip(stocks["ticker"], stocks["price_currency"], strict=True))
             prices, failed = load_prices(self.svc, currencies)
+            prices, suspect = drop_suspect(prices)
             res = run_backtest(prices, load_benchmarks(self.svc))
+            failed = failed + suspect
             payload = result_to_dict(res, failed, datetime.now(UTC).isoformat())
             self.svc.cache.set(CACHE_KEY, _plain(payload))
         except Exception as e:  # el hilo no debe morir en silencio: se informa a la UI

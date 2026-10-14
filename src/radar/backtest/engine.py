@@ -9,6 +9,8 @@ Qué se prueba y qué no (se muestra tal cual en la app):
   ACTUAL de los fundamentales; usarla en el pasado sería mirar al futuro.
 - Cartera: las `top_n` mejores, a partes iguales, revisadas cada `rebalance_weeks` semanas,
   con un coste de `cost` por euro comprado o vendido. Todo en euros y con dividendos.
+- Datos sospechosos: Yahoo trae a veces precios corruptos (saltos de miles de %). Se excluyen
+  los valores con alguna semana por debajo de -60 % o por encima de +100 % (`drop_suspect`).
 - Sesgo de supervivencia: el universo son las empresas que cotizan HOY (las que quebraron o
   dejaron de cotizar no están). Por eso se compara también con el universo entero a partes
   iguales: tiene el mismo sesgo, y la diferencia con él mide lo que aporta la selección.
@@ -20,6 +22,8 @@ import numpy as np
 import pandas as pd
 
 WEEKS_PER_YEAR = 52
+MIN_WEEKLY_MOVE = -0.60  # caída semanal máxima creíble
+MAX_WEEKLY_MOVE = 1.00  # subida semanal máxima creíble
 
 
 @dataclass(frozen=True)
@@ -72,6 +76,14 @@ def price_scores(window: pd.DataFrame, momentum_weight: float = 0.5) -> pd.Serie
     momentum = pct[["ret_52", "ret_26", "dist_40"]].mean(axis=1)
     risk = ((1 - pct["vol"]) + pct["mdd"]) / 2  # menos volatilidad y caídas más suaves = mejor
     return 100 * (momentum_weight * momentum + (1 - momentum_weight) * risk)
+
+
+def drop_suspect(prices: pd.DataFrame) -> tuple[pd.DataFrame, list[str]]:
+    """Quita los valores con saltos semanales imposibles (datos corruptos). (precios, quitados)."""
+    moves = prices.pct_change()
+    bad = ((moves < MIN_WEEKLY_MOVE) | (moves > MAX_WEEKLY_MOVE)).any()
+    dropped = sorted(bad[bad].index)
+    return prices.drop(columns=dropped), dropped
 
 
 def _eligible(window: pd.DataFrame) -> list[str]:
