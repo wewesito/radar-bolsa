@@ -33,6 +33,30 @@ MIGRATIONS: list[str] = [
     );
     CREATE INDEX idx_trades_ticker ON trades (ticker);
     """,
+    # v3: alertas y avisos disparados
+    """
+    CREATE TABLE alerts (
+        id              INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticker          TEXT NOT NULL,
+        metric          TEXT NOT NULL
+                        CHECK (metric IN ('price', 'change_pct', 'rsi', 'sma50', 'sma200')),
+        op              TEXT NOT NULL CHECK (op IN ('above', 'below')),
+        threshold       REAL,
+        active          INTEGER NOT NULL DEFAULT 1,
+        last_state      INTEGER,           -- NULL = aún no evaluada
+        last_value      REAL,
+        last_checked_at TEXT,
+        created_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+    CREATE TABLE alert_events (
+        id           INTEGER PRIMARY KEY AUTOINCREMENT,
+        alert_id     INTEGER NOT NULL REFERENCES alerts (id) ON DELETE CASCADE,
+        triggered_at TEXT NOT NULL,
+        value        REAL NOT NULL,
+        message      TEXT NOT NULL,
+        seen         INTEGER NOT NULL DEFAULT 0
+    );
+    """,
 ]
 
 

@@ -7,6 +7,7 @@ import streamlit as st
 from radar import DISCLAIMER, config
 from radar.data.markets import exchange_for, is_session_open
 from radar.data.service import MarketDataService, default_service
+from radar.db.alerts import AlertsRepo
 from radar.db.database import Database
 from radar.db.watchlist import WatchlistRepo
 from radar.errors import RadarError, RateLimitError, TickerNotFoundError
@@ -23,6 +24,11 @@ def market_data() -> MarketDataService:
 @st.cache_resource
 def watchlist_repo() -> WatchlistRepo:
     return WatchlistRepo(Database(config.DB_PATH))
+
+
+@st.cache_resource
+def alerts_repo() -> AlertsRepo:
+    return AlertsRepo(Database(config.DB_PATH))
 
 
 def disclaimer() -> None:

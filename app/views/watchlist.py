@@ -6,6 +6,7 @@ import pandas as pd
 import streamlit as st
 
 from components.common import (
+    alerts_repo,
     delay_label,
     disclaimer,
     market_data,
@@ -14,6 +15,7 @@ from components.common import (
     watchlist_repo,
 )
 from radar import config
+from radar.alerts.checker import check_all
 from radar.data.markets import is_valid_format, normalize_ticker
 from radar.errors import RadarError
 from radar.formatting import fmt_age, fmt_dt
@@ -117,6 +119,9 @@ def quotes_table(tickers: list[str]) -> None:
         )
     for t, e in errors:
         st.warning(f"{t}: {e}")
+    # Las alertas se comprueban en cada refresco (la caché evita llamadas extra a la API)
+    for msg in check_all(svc, alerts_repo()):
+        st.toast(msg, icon="🔔")
     st.caption(
         f"Actualizado {fmt_dt(datetime.now(UTC), with_date=False)} (hora de Madrid) · "
         f"refresco automático cada {config.REFRESH_SECONDS} s · Hora dato = última "
