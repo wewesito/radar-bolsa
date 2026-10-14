@@ -6,6 +6,7 @@ import { Disclaimer, ErrorBox, GlossaryProvider } from "./components/ui";
 import { Detalle } from "./pages/Detalle";
 import { Espana } from "./pages/Espana";
 import { Ajustes, Aprender, Inicio, Proximamente } from "./pages/Otras";
+import { Invertir } from "./pages/Invertir";
 import { Metodologia } from "./pages/Metodologia";
 import { Perfil } from "./pages/Perfil";
 import { Recomendaciones } from "./pages/Recomendaciones";
@@ -148,8 +149,7 @@ export function App() {
   else if (page.name === "metodologia") body = <Metodologia />;
   else if (page.name === "cartera")
     body = <Proximamente title="Mi cartera" text="La cartera simulada (operaciones, valoración en euros y comparación con un índice) y las alertas con notificaciones de escritorio llegan en la fase 4. Mientras tanto siguen disponibles en la versión anterior (Streamlit)." />;
-  else
-    body = <Proximamente title="Cómo invertir" text="Las guías paso a paso (elegir bróker en España, tipos de órdenes, aportaciones periódicas, fondo de emergencia y fiscalidad) llegan en la fase 3. Desde cada recomendación ya tienes un resumen en «Cómo comprar esto»." />;
+  else body = <Invertir />;
 
   return (
     <GlossaryProvider>

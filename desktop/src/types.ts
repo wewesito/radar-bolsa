@@ -256,3 +256,8 @@ export type BacktestResult = {
 };
 
 export type BacktestState = { result: BacktestResult | null; running: boolean; error: string | null };
+
+export type GuidesData = {
+  guides: { key: string; title: string; summary: string; body: string }[];
+  concepts: { title: string; body: string }[];
+};

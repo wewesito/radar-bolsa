@@ -37,7 +37,7 @@ const NAV: { name: Page["name"]; label: string; icon: ReactNode; soon?: string }
   { name: "recs", label: "Mis recomendaciones", icon: <IconTarget /> },
   { name: "espana", label: "España", icon: <IconFlag /> },
   { name: "cartera", label: "Mi cartera", icon: <IconWallet />, soon: "Pronto" },
-  { name: "invertir", label: "Cómo invertir", icon: <IconBook />, soon: "Pronto" },
+  { name: "invertir", label: "Cómo invertir", icon: <IconBook /> },
   { name: "aprender", label: "Aprender", icon: <IconCap /> },
   { name: "metodologia", label: "Metodología", icon: <IconSliders /> },
 ];

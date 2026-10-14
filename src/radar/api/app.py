@@ -20,7 +20,10 @@ from radar import __version__, recommend, scoring
 from radar.api.state import Engine, NoProfileError, NoUniverseError
 from radar.backtest import engine as backtest_engine
 from radar.data.markets import exchange_for
+from radar.education.concepts import CONCEPTS
+from radar.education.finance_math import compound_growth, real_return, savings_tax
 from radar.education.glossary import ENTRIES
+from radar.education.guides import GUIDES
 from radar.errors import ProviderUnavailableError, RadarError, TickerNotFoundError
 from radar.etfs import BY_TICKER as ETF_INFO
 from radar.profile import investor
@@ -386,6 +389,48 @@ def create_app(engine: Engine, token: str) -> FastAPI:
                 for c in COMPONENTS
             ],
         }
+
+    @api.get("/guides")
+    def guides() -> dict:
+        """Guías «Cómo invertir» y conceptos básicos, en Markdown."""
+        return {
+            "guides": [asdict(g) for g in GUIDES],
+            "concepts": [{"title": k, "body": v} for k, v in CONCEPTS.items()],
+        }
+
+    @api.get("/calc/compound")
+    def calc_compound(
+        initial: float = 0,
+        monthly: float = 0,
+        annual_return: float = 0.06,
+        years: int = 20,
+        fee: float = 0.0,
+        inflation: float = 0.02,
+    ) -> dict:
+        """Interés compuesto con aportaciones. Rentabilidades y comisión en fracción (0,06)."""
+        if not (0 <= years <= 60 and initial >= 0 and monthly >= 0 and -0.5 < annual_return < 1):
+            raise HTTPException(422, "Revisa los valores: años entre 0 y 60 e importes positivos.")
+        df = compound_growth(initial, monthly, annual_return, years, fee)
+        real = real_return(annual_return - fee, inflation)
+        rows = [
+            {"year": int(y), "contributed": float(r.contributed), "value": float(r.value)}
+            for y, r in df.iterrows()
+        ]
+        end = rows[-1]
+        return {
+            "rows": rows,
+            "gain": end["value"] - end["contributed"],
+            "real_return": real,
+            "real_value": end["value"] / (1 + inflation) ** years,
+        }
+
+    @api.get("/calc/tax")
+    def calc_tax(base: float = 0) -> dict:
+        """Cuota aproximada de la base del ahorro (IRPF, tramos generales)."""
+        if base < 0 or base > 1e9:
+            raise HTTPException(422, "Introduce una base entre 0 y 1.000 millones de euros.")
+        tax = savings_tax(base)
+        return {"base": base, "tax": tax, "effective_rate": tax / base if base else 0.0}
 
     @api.get("/methodology")
     def methodology() -> dict:

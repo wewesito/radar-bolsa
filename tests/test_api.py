@@ -175,3 +175,18 @@ def test_backtest_endpoint_serves_cached_result(tmp_path):
     body = c.get("/api/backtest").json()["result"]
     assert body["failed"] == ["X"] and body["last_selection"]["picks"]
     assert body["metrics"]["Ref"]["cagr"] > 0 and len(body["dates"]) == len(body["series"]["Ref"])
+
+
+def test_guides_and_calculators(client):
+    g = client.get("/api/guides").json()
+    assert {x["key"] for x in g["guides"]} >= {"broker", "ordenes", "fiscalidad"}
+    assert g["concepts"]
+    c = client.get(
+        "/api/calc/compound", params={"initial": 1000, "monthly": 100, "years": 10}
+    ).json()
+    assert c["rows"][0]["year"] == 0 and c["rows"][-1]["contributed"] == 1000 + 100 * 120
+    assert c["gain"] > 0 and c["real_value"] < c["rows"][-1]["value"]
+    assert client.get("/api/calc/compound", params={"years": 99}).status_code == 422
+    t = client.get("/api/calc/tax", params={"base": 10000}).json()
+    assert round(t["tax"], 2) == 6000 * 0.19 + 4000 * 0.21
+    assert client.get("/api/calc/tax", params={"base": -1}).status_code == 422
