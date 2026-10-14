@@ -34,6 +34,18 @@ SECTOR_ES = {
 }
 
 
+COUNTRY_ES = {
+    "Spain": "España", "United States": "EE. UU.", "Germany": "Alemania", "France": "Francia",
+    "Netherlands": "Países Bajos", "Italy": "Italia", "Belgium": "Bélgica",
+    "Finland": "Finlandia", "United Kingdom": "Reino Unido", "Switzerland": "Suiza",
+    "Portugal": "Portugal", "Ireland": "Irlanda", "Luxembourg": "Luxemburgo",
+}  # fmt: skip
+
+
+def country_es(country: str | None) -> str:
+    return COUNTRY_ES.get(country or "", country or "n/d")
+
+
 def sector_es(sector: str | None) -> str:
     return SECTOR_ES.get(sector or "", sector or "Sin sector")
 

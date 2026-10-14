@@ -12,5 +12,7 @@ with st.sidebar:
 pages = [
     st.Page("views/watchlist.py", title="Watchlist", icon="👀", default=True),
     st.Page("views/empresa.py", title="Empresa", icon="🏢"),
+    st.Page("views/screener.py", title="Screener", icon="🔎"),
+    st.Page("views/comparador.py", title="Comparador", icon="⚖️"),
 ]
 st.navigation(pages).run()

@@ -20,9 +20,9 @@ from radar.indicators.risk import price_stats
 from radar.models import Fundamentals
 from radar.universe_list import UNIVERSE
 
-SNAPSHOT_KEY = "universe:snapshot:v2"  # v2: + estadísticas de precio
+SNAPSHOT_KEY = "universe:snapshot:v3"  # v2: + estadísticas de precio; v3: + moneda
 STALE_AFTER_DAYS = 7
-TEXT_COLUMNS = ["ticker", "name", "sector", "industry", "country", "region"]
+TEXT_COLUMNS = ["ticker", "name", "sector", "industry", "country", "currency", "region"]
 
 
 @dataclass(frozen=True)
@@ -44,6 +44,7 @@ def fundamentals_row(f: Fundamentals) -> dict:
         "sector": f.sector,
         "industry": f.industry,
         "country": f.country,
+        "currency": f.currency,
         "region": region_for(f.ticker),
         **add_derived(f.metrics),
     }
