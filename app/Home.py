@@ -1,10 +1,16 @@
-"""Punto de entrada de la app Streamlit."""
+"""Punto de entrada: configura la app y define la navegación entre páginas."""
 
 import streamlit as st
 
 from radar import DISCLAIMER
 
 st.set_page_config(page_title="Radar Bolsa", page_icon="📈", layout="wide")
-st.warning(DISCLAIMER, icon="⚠️")
-st.title("Radar Bolsa")
-st.write("Esqueleto en construcción.")
+
+with st.sidebar:
+    st.warning(DISCLAIMER, icon="⚠️")
+
+pages = [
+    st.Page("views/watchlist.py", title="Watchlist", icon="👀", default=True),
+    st.Page("views/empresa.py", title="Empresa", icon="🏢"),
+]
+st.navigation(pages).run()

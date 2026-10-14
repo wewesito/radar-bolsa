@@ -1,0 +1,6 @@
+[client]
+# App local: sin botón "Deploy" ni menú de desarrollador
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false
