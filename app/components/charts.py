@@ -5,6 +5,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 from radar.config import DISPLAY_TZ
+from radar.formatting import fmt_number
 from radar.indicators.technical import Level, bollinger, macd, rsi, sma
 from radar.models import PriceHistory
 
@@ -181,7 +182,7 @@ def technical_chart(close: pd.Series, levels: list[Level], show_last_days: int =
             line=dict(color=MUTED, width=1, dash="dash"),
             row=1,
             col=1,
-            annotation_text=f"{tag} {lv.price:,.2f} ({lv.touches} toques)",
+            annotation_text=f"{tag} {fmt_number(lv.price)} ({lv.touches} toques)",
             annotation_position="top left",
             annotation_font_size=10,
         )

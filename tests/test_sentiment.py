@@ -51,6 +51,7 @@ def test_mixed_headline_is_neutral():
 
 def test_roots_do_not_catch_unrelated_words():
     assert analyze("New window design for the mission and advertising").label == "neutral"
+    assert analyze("Surgen dudas sobre el plan").positives == []  # falso amigo inglés/español
     res = analyze("Escalada de tensiones comerciales")
     assert res.positives == []  # 'escalada' no es positivo...
     assert res.label == "negativo"  # ...y 'tensiones' sí es negativo

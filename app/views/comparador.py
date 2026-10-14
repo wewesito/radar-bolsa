@@ -28,7 +28,9 @@ options = list(
 )
 default = [t for t in st.session_state.get("compare", []) if t in options] or options[:2]
 c1, c2 = st.columns([3, 1])
-picked = c1.multiselect("Empresas (2–4)", options, default=default, max_selections=4)
+picked = c1.multiselect(
+    "Empresas (2–4)", options, default=default, max_selections=4, placeholder="Elige empresas"
+)
 extra = c2.text_input("Otro ticker", placeholder="p. ej. ENG.MC")
 if extra:
     t = normalize_ticker(extra)

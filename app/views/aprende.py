@@ -75,12 +75,7 @@ elif section == "Interés compuesto":
     c1, c2, c3 = st.columns(3)
     c1.metric("Aportado", fmt_big(put, "EUR"))
     c2.metric(f"Final con {label_a.lower()}", fmt_big(final_a, "EUR"))
-    c3.metric(
-        f"Final con {label_b.lower()}",
-        fmt_big(final_b, "EUR"),
-        f"{fmt_big(final_b - final_a, 'EUR')} por costes",
-        delta_color="off",
-    )
+    c3.metric(f"Final con {label_b.lower()}", fmt_big(final_b, "EUR"))
     deflator = (1 + infl) ** years
     st.markdown(
         f"- La diferencia de comisiones ({fmt_pct(fee_b - fee_a, 2)} al año) se lleva "

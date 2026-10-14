@@ -4,3 +4,8 @@ toolbarMode = "minimal"
 
 [browser]
 gatherUsageStats = false
+
+[theme]
+# Azul de la paleta de gráficos. El rojo por defecto de Streamlit se lee como "malo" en
+# finanzas (barras de score, deslizadores...).
+primaryColor = "#2a78d6"

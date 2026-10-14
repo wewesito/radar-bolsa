@@ -33,9 +33,9 @@ df = scored(snap.built_at.isoformat(), tuple(sorted(weights.items())))
 # --- Filtros ------------------------------------------------------------------
 with st.container(border=True):
     c1, c2, c3 = st.columns(3)
-    regions = c1.multiselect("Región", sorted(df["region"].dropna().unique()))
+    regions = c1.multiselect("Región", sorted(df["region"].dropna().unique()), placeholder="Todas")
     sector_labels = c2.multiselect(
-        "Sector", sorted(sector_es(s) for s in df["sector"].dropna().unique())
+        "Sector", sorted(sector_es(s) for s in df["sector"].dropna().unique()), placeholder="Todos"
     )
     min_score = c3.slider("Score mínimo", 0, 100, 0, 5)
 

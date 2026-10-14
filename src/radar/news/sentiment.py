@@ -4,7 +4,8 @@ Método:
 1. Se normaliza el texto (minúsculas, sin tildes) y se parte en palabras.
 2. Cada palabra se compara con listas de términos financieros positivos y negativos.
    Un término acabado en '*' es una raíz: 'desplom*' cubre desploma, desplome... Las raíces
-   deben ser específicas: 'win*' cazaría 'window' y 'miss*' cazaría 'mission'.
+   deben ser específicas: 'win*' cazaría 'window', 'miss*' cazaría 'mission' y 'surge*'
+   (inglés: dispararse) cazaría el español 'surgen'.
 3. Negación simple: si una de las 2 palabras anteriores es 'no', 'sin', 'not'...,
    el término cuenta con el signo contrario ('no mejora' → negativo).
 4. Puntuación = (positivos − negativos) / (positivos + negativos), de −1 a +1.
@@ -65,7 +66,10 @@ POSITIVE = {
     "profit*",
     "gain*",
     "beat*",
-    "surge*",
+    "surge",
+    "surges",
+    "surged",
+    "surging",
     "soar*",
     "jump*",
     "rall*",
