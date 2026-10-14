@@ -65,12 +65,18 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+  }, [theme]);
+
+  // Solo se recuerda si el usuario lo cambia a mano; si no, se sigue al sistema.
+  const toggleTheme = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
     try {
-      localStorage.setItem("theme", theme);
+      localStorage.setItem("theme", next);
     } catch {
       /* ignorado */
     }
-  }, [theme]);
+  };
 
   const rebuild = useCallback(async () => {
     await api("/api/universe/build", { method: "POST" }).catch(() => undefined);
@@ -148,7 +154,7 @@ export function App() {
       <div className="shell">
         <Sidebar page={page} go={go} />
         <main className="main" ref={main}>
-          <Topbar go={go} theme={theme} toggleTheme={() => setTheme(theme === "dark" ? "light" : "dark")} status={status} onRebuild={rebuild} />
+          <Topbar go={go} theme={theme} toggleTheme={toggleTheme} status={status} onRebuild={rebuild} />
           <div className="content">{body}</div>
           <Disclaimer />
         </main>
