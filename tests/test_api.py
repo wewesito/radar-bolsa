@@ -258,3 +258,17 @@ def test_alerts_flow(qclient):
     assert c.put(f"/api/alerts/{aid}/active", params={"active": False}).status_code == 200
     assert c.delete(f"/api/alerts/{aid}").status_code == 200
     assert c.get("/api/alerts").json()["alerts"] == []
+
+
+def test_watchlist_flow(qclient):
+    c = qclient
+    assert c.get("/api/watchlist").json() == []
+    assert c.put("/api/watchlist/e1.mc").json() == {"added": True}
+    assert c.put("/api/watchlist/E1.MC").json() == {"added": False}  # ya estaba
+    assert c.put("/api/watchlist/NOPE").status_code == 404
+    item = c.get("/api/watchlist").json()[0]
+    assert item["ticker"] == "E1.MC" and item["quote"]["price"] == 12.0 and item["label"] is None
+    c.put("/api/profile", json=ANSWERS)
+    assert c.get("/api/watchlist").json()[0]["label"] in ("buy", "watch", "avoid")
+    assert c.delete("/api/watchlist/E1.MC").json() == {"removed": True}
+    assert c.get("/api/watchlist").json() == []

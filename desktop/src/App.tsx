@@ -10,6 +10,7 @@ import { Espana } from "./pages/Espana";
 import { Ajustes, Aprender, Inicio } from "./pages/Otras";
 import { Invertir } from "./pages/Invertir";
 import { Metodologia } from "./pages/Metodologia";
+import { Seguimiento } from "./pages/Seguimiento";
 import { Perfil } from "./pages/Perfil";
 import { Recomendaciones } from "./pages/Recomendaciones";
 import type { Answers } from "./types";
@@ -20,7 +21,7 @@ type Theme = "light" | "dark";
 function pageFromHash(): Page {
   const [name, arg] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (name === "detalle" && arg) return { name: "detalle", ticker: decodeURIComponent(arg) };
-  const simple = ["inicio", "recs", "espana", "cartera", "alertas", "invertir", "aprender", "metodologia", "perfil", "ajustes"];
+  const simple = ["inicio", "recs", "espana", "seguimiento", "cartera", "alertas", "invertir", "aprender", "metodologia", "perfil", "ajustes"];
   return simple.includes(name) ? ({ name } as Page) : { name: "recs" };
 }
 
@@ -149,6 +150,7 @@ export function App() {
   else if (page.name === "ajustes") body = <Ajustes status={status} onRebuild={rebuild} />;
   else if (page.name === "aprender") body = <Aprender />;
   else if (page.name === "metodologia") body = <Metodologia />;
+  else if (page.name === "seguimiento") body = <Seguimiento />;
   else if (page.name === "cartera") body = <Cartera />;
   else if (page.name === "alertas") body = <Alertas />;
   else body = <Invertir />;

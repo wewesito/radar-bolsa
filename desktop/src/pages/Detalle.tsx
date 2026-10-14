@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useApi } from "../api";
+import { api, invalidate, useApi } from "../api";
 import { PriceChart } from "../components/charts";
 import { IconAlert, IconArrowUp, IconBack, IconBook, IconCheck, IconX } from "../components/Icons";
 import type { Page } from "../components/Shell";
@@ -134,10 +134,21 @@ export function Detalle({ ticker, go }: { ticker: string; go: (p: Page) => void 
   const hist = useApi<History>(`/api/history/${encodeURIComponent(ticker)}?range=${range}`);
   const [howTo, setHowTo] = useState(false);
 
+  const watch = useApi<{ ticker: string }[]>("/api/watchlist");
+  const following = !!watch.data?.some((w) => w.ticker === ticker);
+  const toggleWatch = async () => {
+    await api(`/api/watchlist/${encodeURIComponent(ticker)}`, { method: following ? "DELETE" : "PUT" }).catch(() => undefined);
+    invalidate("/api/watchlist");
+  };
   const back = (
-    <button className="btn small" style={{ alignSelf: "flex-start" }} onClick={() => go({ name: "recs" })}>
-      <IconBack /> Mis recomendaciones
-    </button>
+    <div className="row between wrap">
+      <button className="btn small" onClick={() => go({ name: "recs" })}>
+        <IconBack /> Mis recomendaciones
+      </button>
+      <button className="btn small" onClick={toggleWatch} aria-pressed={following} disabled={!watch.data}>
+        {following ? "★ Dejar de seguir" : "☆ Seguir"}
+      </button>
+    </div>
   );
   if (error) return <div className="stack">{back}<ErrorBox error={error} onRetry={reload} /></div>;
   if (!d) return <div className="stack">{back}<Loading height={300} /><Loading height={200} /></div>;

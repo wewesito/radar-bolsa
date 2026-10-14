@@ -454,6 +454,41 @@ def create_app(engine: Engine, token: str) -> FastAPI:
         engine.trades.delete(trade_id)
         return {"ok": True}
 
+    # --- Seguimiento (lista de favoritos) ---------------------------------------------
+
+    @api.get("/watchlist")
+    def watchlist() -> list[dict]:
+        items = engine.watchlist.list()
+        quotes = engine.svc.get_quotes([i.ticker for i in items])
+        recs: dict[str, Recommendation] = {}
+        if engine.answers() is not None and engine.snapshot is not None:
+            recs = {r.ticker: r for r in engine.recommendations(engine.profile())}
+        out = []
+        for i in items:
+            q = quotes.get(i.ticker)
+            rec = recs.get(i.ticker)
+            out.append(
+                {
+                    "ticker": i.ticker,
+                    "name": i.name,
+                    "added_at": i.added_at,
+                    "quote": None if q is None or isinstance(q, RadarError) else quote_dict(q),
+                    "label": rec.label if rec else None,
+                    "score": rec.score if rec else None,
+                }
+            )
+        return clean(out)
+
+    @api.put("/watchlist/{ticker}")
+    def watchlist_add(ticker: str) -> dict:
+        t = ticker.strip().upper()
+        q = engine.svc.get_quote(t)  # comprueba que existe (404 si no)
+        return {"added": engine.watchlist.add(t, q.name or t)}
+
+    @api.delete("/watchlist/{ticker}")
+    def watchlist_remove(ticker: str) -> dict:
+        return {"removed": engine.watchlist.remove(ticker.strip().upper())}
+
     # --- Alertas ----------------------------------------------------------------------
 
     @api.get("/alerts")

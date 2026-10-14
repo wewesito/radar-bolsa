@@ -7,6 +7,7 @@ import {
   IconBell,
   IconBook,
   IconCap,
+  IconEye,
   IconFlag,
   IconHome,
   IconMoon,
@@ -26,6 +27,7 @@ export type Page =
   | { name: "recs" }
   | { name: "detalle"; ticker: string }
   | { name: "espana" }
+  | { name: "seguimiento" }
   | { name: "cartera" }
   | { name: "alertas" }
   | { name: "invertir" }
@@ -38,6 +40,7 @@ const NAV: { name: Page["name"]; label: string; icon: ReactNode; soon?: string }
   { name: "inicio", label: "Inicio", icon: <IconHome /> },
   { name: "recs", label: "Mis recomendaciones", icon: <IconTarget /> },
   { name: "espana", label: "España", icon: <IconFlag /> },
+  { name: "seguimiento", label: "Seguimiento", icon: <IconEye /> },
   { name: "cartera", label: "Mi cartera", icon: <IconWallet /> },
   { name: "alertas", label: "Alertas", icon: <IconBell /> },
   { name: "invertir", label: "Cómo invertir", icon: <IconBook /> },

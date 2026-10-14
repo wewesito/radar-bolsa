@@ -13,6 +13,7 @@ App de escritorio para macOS que analiza acciones y ETFs de España, Europa y EE
 | **Detalle** | Gráfico de precio, las condiciones que cumple o no para la señal, 3 razones y 3 riesgos en lenguaje sencillo, rango de entrada con sus cálculos, nivel de riesgo, desglose de la puntuación y «Cómo comprar esto». |
 | **España** | IBEX 35 y Mercado Continuo (unas 108 empresas): Top 10 combinado y rankings ordenables por rentabilidad en bolsa (año, 1, 3 y 5 años, con y sin dividendos), negocio (ROE, ROIC, márgenes, crecimiento), dividendo (rentabilidad, años seguidos, payout, sostenibilidad) y valoración (PER y P/VC frente al sector). Con filtro por sector. |
 | **Inicio** | Índices (IBEX 35, Euro Stoxx 50, S&P 500, EUR/USD), tus mejores oportunidades y el estado de los datos. |
+| **Seguimiento** | Lista de valores favoritos (botón «Seguir» en cada ficha) con su señal, puntuación y cotización. |
 | **Mi cartera** | Cartera de **operaciones ficticias**: valoración en euros con FIFO, evolución frente a un índice («cartera sombra»), señal del modelo de cada posición y diversificación por sector y país. |
 | **Alertas** | Avisos de precio, variación diaria, RSI o cruce de medias, con notificación de macOS mientras la app está abierta. |
 | **Cómo invertir** | Guías: elegir bróker en España, tipos de órdenes, aportaciones periódicas, fondo de emergencia y fiscalidad, con calculadoras. |

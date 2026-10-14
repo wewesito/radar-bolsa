@@ -288,3 +288,9 @@ export type TradeRow = { id: number; ticker: string; side: "BUY" | "SELL"; quant
 export type AlertRow = { id: number; ticker: string; metric: string; op: string; threshold: number | null; active: boolean; text: string; last_value: number | null; last_checked_at: string | null };
 export type AlertEvent = { id: number; alert_id: number; triggered_at: string; value: number; message: string; seen: boolean };
 export type AlertsData = { alerts: AlertRow[]; events: AlertEvent[]; metrics: Record<string, string> };
+
+export type WatchItem = {
+  ticker: string; name: string; added_at: string;
+  quote: { price: number; change_pct: number | null; currency: string | null; as_of: string; source: string; delay_minutes: number | null; stale: boolean } | null;
+  label: Label | null; score: number | null;
+};

@@ -18,6 +18,7 @@ from radar.db.alerts import AlertsRepo
 from radar.db.database import Database
 from radar.db.settings import SettingsRepo
 from radar.db.trades import TradesRepo
+from radar.db.watchlist import WatchlistRepo
 from radar.profile.investor import (
     Answers,
     InvestorProfile,
@@ -59,6 +60,7 @@ class Engine:
         self.settings = SettingsRepo(db)
         self.trades = TradesRepo(db)
         self.alerts = AlertsRepo(db)
+        self.watchlist = WatchlistRepo(db)
         self.snapshot: UniverseSnapshot | None = load_universe(svc.cache)
         self.build = BuildStatus()
         self.backtest = BacktestRunner(svc)
