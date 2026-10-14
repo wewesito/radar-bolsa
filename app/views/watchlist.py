@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 
 import pandas as pd
 import streamlit as st
+
 from components.common import (
     delay_label,
     disclaimer,
@@ -12,7 +13,6 @@ from components.common import (
     show_error,
     watchlist_repo,
 )
-
 from radar import config
 from radar.data.markets import is_valid_format, normalize_ticker
 from radar.errors import RadarError

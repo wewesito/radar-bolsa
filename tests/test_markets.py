@@ -33,6 +33,7 @@ def test_exchange_for():
     assert exchange_for("AAPL") is US
     assert exchange_for("^IBEX") is None
     assert exchange_for("XXX.ZZ") is None
+    assert exchange_for("NOKIA.HE").country == "Finlandia"
 
 
 def test_suffix_hint_only_for_bare_tickers():

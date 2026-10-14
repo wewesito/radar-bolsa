@@ -6,7 +6,6 @@ import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "app"))
 from components.charts import missing_days, price_chart  # noqa: E402
-
 from radar.models import PriceHistory  # noqa: E402
 
 
