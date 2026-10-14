@@ -7,7 +7,8 @@ Acciones
   rango fiable, componente de valoración ≥ 50), riesgo dentro de tu tolerancia,
   beneficio positivo (una empresa en pérdidas nunca sale como "Comprar") y al menos 200
   millones de capitalización (por debajo, comprar y vender sin mover el precio es difícil).
-- Evitar: puntuación < 40, o riesgo dos niveles por encima de tu tolerancia.
+- Evitar: puntuación < 40, riesgo dos niveles por encima de tu tolerancia, o sin cotizar
+  desde hace más de 10 días (suele ser una exclusión de bolsa, p. ej. tras una OPA).
 - Vigilar: el resto.
 
 ETFs (se comparan con los demás ETFs de referencia en coste, tamaño, riesgo y momentum)
@@ -61,6 +62,7 @@ LOW_MDD, MID_MDD = -0.20, -0.35
 SMALL_CAP = 1e9  # en la moneda de las cuentas (≈ euros o dólares)
 MICRO_CAP = 2e8
 RANGE_MAX_SPREAD = 2.5
+STALE_PRICE_DAYS = 10
 MAX_REASONS = 3
 
 # Métricas que dicen casi lo mismo: si ya hay una, no se repite la otra como razón
@@ -205,6 +207,20 @@ def risk_detail(
         size += "" if floor == 2 else "1.000 millones)"
         text += f" Además es una empresa {size}: puede moverse mucho de golpe y es menos líquida."
     return text
+
+
+def last_close_gap_days(row: dict) -> float | None:
+    """Días entre el último cierre y la descarga. None si falta alguna de las dos fechas."""
+    last, fetched = row.get("last_close"), row.get("history_as_of")
+    if not last or not fetched:
+        return None
+    return (pd.Timestamp(fetched) - pd.Timestamp(last)).total_seconds() / 86400
+
+
+def is_trading(row: dict) -> bool:
+    """False si el último cierre es de hace más de STALE_PRICE_DAYS días."""
+    gap = last_close_gap_days(row)
+    return gap is None or gap <= STALE_PRICE_DAYS
 
 
 def is_profitable(row: dict) -> bool | None:
@@ -396,6 +412,11 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
         )
     )
 
+    trading = is_trading(row)
+    if not trading:
+        last = pd.Timestamp(row["last_close"]).strftime("%d/%m/%Y")
+        checks.append(RuleCheck("Cotiza con normalidad", False, f"Último cierre: {last}"))
+
     pros, cons = pick_reasons(res.components, currency)
     if profitable is False:
         cons.insert(0, Reason("Está en pérdidas: no gana dinero con su negocio actual."))
@@ -409,7 +430,13 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
     cons = _fill_cons(cons, extra_cons)
 
     label: Label
-    if score is None:
+    if not trading:
+        label = "avoid"
+        summary = (
+            f"No cotiza desde el {last}: puede haber sido excluida de bolsa (por ejemplo, "
+            "tras una OPA). Sus datos ya no son fiables."
+        )
+    elif score is None:
         label = "watch"
         summary = "No hay datos suficientes para puntuarla: revisa sus números a mano."
     elif score < AVOID_SCORE:

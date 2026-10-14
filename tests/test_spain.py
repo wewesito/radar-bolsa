@@ -41,6 +41,8 @@ def make_df() -> pd.DataFrame:
                 "roe": 0.05 * k,
                 "vol_1y": 0.15,
                 "mdd_1y": -0.1,
+                "market_cap": 5e9 if k < 7 else 1e8,  # la última es muy pequeña
+                "profit_margin": 0.1,
             }
         )
     rows.append({**rows[0], "ticker": "EOAN.DE", "spain_index": None})  # no es española
@@ -63,3 +65,10 @@ def test_spain_table_has_only_spanish_stocks_with_sector_medians():
     assert ener["spain_index"] == "Mercado Continuo"
     scores = [r["score"] for r in table if r["score"] is not None]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_top10_eligibility_excludes_micro_caps():
+    df = make_df()
+    table = spain_table(df, {})
+    eligible = {r["ticker"]: r["top_eligible"] for r in table}
+    assert eligible["IBE.MC"] is True and eligible["ENER.MC"] is False

@@ -4,6 +4,10 @@ Cada fila trae las métricas de los cuatro rankings (bolsa, negocio, dividendo, 
 las medianas de su sector para comparar y la señal del modelo con el perfil del usuario.
 Las medianas del sector se calculan con los mismos comparables que el score
 (mismo sector y región; si hay pocos, el sector mundial).
+
+Entran en el Top 10 (`top_eligible`) solo las que cotizan con normalidad, ganan dinero y
+tienen al menos 200 millones de capitalización: las mismas condiciones mínimas que la señal
+"Comprar".
 """
 
 from collections.abc import Mapping
@@ -12,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from radar.fundamentals.sector import MIN_PEERS, sector_es, select_peers
-from radar.recommend.engine import LABEL_ES, Recommendation
+from radar.recommend.engine import LABEL_ES, MICRO_CAP, Recommendation, is_profitable, is_trading
 
 CHEAP_RATIO = 0.85  # PER más de un 15 % por debajo de la mediana del sector
 EXPENSIVE_RATIO = 1.15
@@ -90,6 +94,12 @@ def spain_table(df: pd.DataFrame, recs: Mapping[str, Recommendation]) -> list[di
             "label": rec.label if rec else None,
             "label_es": LABEL_ES[rec.label] if rec else None,
             "risk_level": rec.risk_level if rec else None,
+            "top_eligible": bool(
+                is_trading(row)
+                and is_profitable(row)
+                and _val(row.get("market_cap")) is not None
+                and _val(row.get("market_cap")) >= MICRO_CAP
+            ),
             "fundamentals_as_of": row.get("fundamentals_as_of"),
             "history_as_of": row.get("history_as_of"),
         }

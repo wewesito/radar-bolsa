@@ -56,3 +56,20 @@ def test_build_and_reload(tmp_path):
 
 def test_load_without_snapshot(tmp_path):
     assert load_universe(Cache(tmp_path / "c.db")) is None
+
+
+def test_missing_text_values_load_as_none(tmp_path):
+    import math
+
+    import pandas as pd
+
+    from radar.universe import SNAPSHOT_KEY
+
+    cache = Cache(tmp_path / "c.db")
+    rows = [{"ticker": "A.MC", "sector": "Energy", "pe_trailing": 1.0},
+            {"ticker": "B.MC", "sector": None, "pe_trailing": None}]  # fmt: skip
+    cache.set(SNAPSHOT_KEY, {"rows": rows, "built_at": "2026-10-14T10:00:00+00:00", "failed": []})
+    df = load_universe(cache).df
+    assert df.loc[1, "sector"] is None
+    assert math.isnan(df.loc[1, "pe_trailing"])
+    assert isinstance(df, pd.DataFrame)

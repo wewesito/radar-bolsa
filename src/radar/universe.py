@@ -32,8 +32,8 @@ from radar.indicators.risk import price_stats
 from radar.models import Fundamentals
 from radar.universe_list import UNIVERSE, spain_index
 
-# v2: + estadísticas de precio; v3: + moneda; v4: + España, ETFs, precio, plazos y ROIC
-SNAPSHOT_KEY = "universe:snapshot:v4"
+# v2: + precio; v3: + moneda; v4: + España, ETFs, plazos y ROIC
+SNAPSHOT_KEY = "universe:snapshot:v5"  # v5: + fecha del último cierre
 STALE_AFTER_DAYS = 7
 TEXT_COLUMNS = [
     "ticker",
@@ -48,6 +48,7 @@ TEXT_COLUMNS = [
     "spain_index",
     "div_sustainability",
     "history_as_of",
+    "last_close",
     "fundamentals_as_of",
     "last_report",
 ]
@@ -102,6 +103,7 @@ def company_row(svc: MarketDataService, ticker: str) -> dict:
         hist = svc.get_history(ticker, "MAXd" if long else "2A")
         data = hist.data
         row["history_as_of"] = _iso(hist.as_of)
+        row["last_close"] = data.index[-1].isoformat()
         price_col = data["PriceClose"] if "PriceClose" in data else data["Close"]
         row["price"] = float(price_col.iloc[-1])
         row.update(price_stats(data["Close"]))
@@ -160,4 +162,7 @@ def load_universe(cache: Cache) -> UniverseSnapshot | None:
     df = pd.DataFrame(v["rows"])
     for col in df.columns.difference(TEXT_COLUMNS):
         df[col] = pd.to_numeric(df[col], errors="coerce")  # None → NaN, todo float
+    # En las de texto, un hueco es None (no NaN, que es "verdadero" y no es un texto)
+    text = df.columns.intersection(TEXT_COLUMNS)
+    df[text] = df[text].astype(object).where(df[text].notna(), None)
     return UniverseSnapshot(df, datetime.fromisoformat(v["built_at"]), v["failed"])

@@ -248,3 +248,13 @@ def test_recommend_all_orders_buy_first_then_by_score():
     assert {r.kind for r in recs} == {"stock", "etf"}
     d = recs[0].to_dict()
     assert d["label_es"] in ("Comprar", "Vigilar", "Evitar") and "risk_label" in d
+
+
+def test_stopped_trading_is_avoid():
+    row = company(best=True, last_close="2026-09-21T22:00:00+00:00",
+                  history_as_of="2026-10-14T16:00:00+00:00")  # fmt: skip
+    rec = recommend(row, universe(), MODERATE)
+    assert rec.label == "avoid" and "21/09/2026" in rec.summary
+    fresh = company(best=True, last_close="2026-10-13T22:00:00+00:00",
+                    history_as_of="2026-10-14T16:00:00+00:00")  # fmt: skip
+    assert recommend(fresh, universe(), MODERATE).label == "buy"
