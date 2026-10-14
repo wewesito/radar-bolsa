@@ -153,3 +153,25 @@ def test_glossary_and_methodology(client):
     assert any(e["key"] == "model_label" for e in g["entries"])
     m = client.get("/api/methodology").json()
     assert "Comprar" in m["signal"] and "Puntos de riesgo" in m["profile"]
+
+
+def test_backtest_endpoint_serves_cached_result(tmp_path):
+    from radar.backtest.engine import run_backtest
+    from radar.backtest.service import CACHE_KEY, _plain, result_to_dict
+
+    svc = MarketDataService(FakeProvider(), Cache(tmp_path / "c.db"))
+    engine = Engine(svc, Database(tmp_path / "r.db"))
+    c = TestClient(create_app(engine, TOKEN))
+    c.headers["X-Radar-Token"] = TOKEN
+    assert c.get("/api/backtest").json() == {"result": None, "running": False, "error": None}
+
+    idx = pd.date_range("2020-01-03", periods=130, freq="W-FRI")
+    growth = {f"A{k}": 100 * (1 + 0.002 * k) ** pd.RangeIndex(130) for k in range(1, 9)}
+    prices = pd.DataFrame(growth, index=idx)
+    bench = {"Ref": pd.Series(range(100, 230), index=idx, dtype=float)}
+    res = result_to_dict(run_backtest(prices, bench), ["X"], T0.isoformat())
+    svc.cache.set(CACHE_KEY, _plain(res))
+
+    body = c.get("/api/backtest").json()["result"]
+    assert body["failed"] == ["X"] and body["last_selection"]["picks"]
+    assert body["metrics"]["Ref"]["cagr"] > 0 and len(body["dates"]) == len(body["series"]["Ref"])

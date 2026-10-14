@@ -18,6 +18,7 @@ from pydantic import BaseModel
 
 from radar import __version__, recommend, scoring
 from radar.api.state import Engine, NoProfileError, NoUniverseError
+from radar.backtest import engine as backtest_engine
 from radar.data.markets import exchange_for
 from radar.education.glossary import ENTRIES
 from radar.errors import ProviderUnavailableError, RadarError, TickerNotFoundError
@@ -212,6 +213,21 @@ def create_app(engine: Engine, token: str) -> FastAPI:
         started = engine.start_build()
         return {"started": started, "build": asdict(engine.build)}
 
+    # --- Backtest ---------------------------------------------------------------------
+
+    @api.get("/backtest")
+    def backtest() -> dict:
+        """Último resultado en caché (o null) y estado del cálculo en marcha."""
+        bt = engine.backtest
+        return clean(
+            {"result": bt.cached(), "running": bt.status.running, "error": bt.status.error}
+        )
+
+    @api.post("/backtest/run")
+    def backtest_run() -> dict:
+        started = engine.backtest.start(engine.universe())
+        return {"started": started}
+
     # --- Recomendaciones --------------------------------------------------------------
 
     @api.get("/recommendations")
@@ -377,6 +393,7 @@ def create_app(engine: Engine, token: str) -> FastAPI:
             "score": scoring.score.__doc__,
             "signal": recommend.engine.__doc__,
             "profile": investor.__doc__,
+            "backtest": backtest_engine.__doc__,
         }
 
     # --- Ajustes ----------------------------------------------------------------------

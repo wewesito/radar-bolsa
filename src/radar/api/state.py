@@ -9,6 +9,7 @@ from datetime import UTC, datetime
 
 import pandas as pd
 
+from radar.backtest.service import BacktestRunner
 from radar.data.service import MarketDataService
 from radar.db.database import Database
 from radar.db.settings import SettingsRepo
@@ -51,6 +52,7 @@ class Engine:
         self.settings = SettingsRepo(db)
         self.snapshot: UniverseSnapshot | None = load_universe(svc.cache)
         self.build = BuildStatus()
+        self.backtest = BacktestRunner(svc)
         self._lock = threading.Lock()
         self._recs: dict[tuple, list[Recommendation]] = {}
 

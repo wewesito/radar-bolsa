@@ -111,4 +111,6 @@ ALL_RANGES: dict[str, ChartRange] = {
     "5Ad": ChartRange("5 años (diario)", "5y", "1d"),
     # Todo el histórico diario: rentabilidades a 3–5 años e historial de dividendos.
     "MAXd": ChartRange("Máximo (diario)", "max", "1d"),
+    # 10 años semanales: backtest (ligero: ~520 velas por valor)
+    "10Aw": ChartRange("10 años (semanal)", "10y", "1wk"),
 }
