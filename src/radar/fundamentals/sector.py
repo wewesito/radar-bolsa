@@ -35,11 +35,20 @@ SECTOR_ES = {
 
 
 COUNTRY_ES = {
-    "Spain": "España", "United States": "EE. UU.", "Germany": "Alemania", "France": "Francia",
-    "Netherlands": "Países Bajos", "Italy": "Italia", "Belgium": "Bélgica",
-    "Finland": "Finlandia", "United Kingdom": "Reino Unido", "Switzerland": "Suiza",
-    "Portugal": "Portugal", "Ireland": "Irlanda", "Luxembourg": "Luxemburgo",
-}  # fmt: skip
+    "Spain": "España",
+    "United States": "EE. UU.",
+    "Germany": "Alemania",
+    "France": "Francia",
+    "Netherlands": "Países Bajos",
+    "Italy": "Italia",
+    "Belgium": "Bélgica",
+    "Finland": "Finlandia",
+    "United Kingdom": "Reino Unido",
+    "Switzerland": "Suiza",
+    "Portugal": "Portugal",
+    "Ireland": "Irlanda",
+    "Luxembourg": "Luxemburgo",
+}
 
 
 def country_es(country: str | None) -> str:

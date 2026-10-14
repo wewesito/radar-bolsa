@@ -58,9 +58,11 @@ def components_chart(res: ScoreResult) -> go.Figure:
     )
     fig.add_vline(x=50, line=dict(color="rgba(128,128,128,0.6)", width=1, dash="dot"))
     fig.update_layout(
-        height=260, margin=dict(l=10, r=30, t=10, b=10), xaxis=dict(range=[0, 105],
-        title="Puntuación (50 = mediana de los comparables)"), separators=",.",
-    )  # fmt: skip
+        height=260,
+        margin=dict(l=10, r=30, t=10, b=10),
+        xaxis=dict(range=[0, 105], title="Puntuación (50 = mediana de los comparables)"),
+        separators=",.",
+    )
     return fig
 
 
@@ -125,10 +127,15 @@ def render_score(svc: MarketDataService, ticker: str, q: Quote) -> None:
                     }
                 )
             st.dataframe(
-                pd.DataFrame(records), hide_index=True, width="stretch",
-                column_config={"Percentil (0–100)": st.column_config.ProgressColumn(
-                    min_value=0, max_value=100, format="%d")},
-            )  # fmt: skip
+                pd.DataFrame(records),
+                hide_index=True,
+                width="stretch",
+                column_config={
+                    "Percentil (0–100)": st.column_config.ProgressColumn(
+                        min_value=0, max_value=100, format="%d"
+                    )
+                },
+            )
             valid = [i.percentile * 100 for i in c.inputs if i.percentile is not None]
             if valid:
                 terms = " + ".join(fmt_number(v, 0) for v in valid)

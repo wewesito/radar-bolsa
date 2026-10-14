@@ -48,35 +48,56 @@ class ComponentDef:
 
 COMPONENTS: list[ComponentDef] = [
     ComponentDef(
-        "valuation", "Valoración", "sector",
-        [InputDef("pe_trailing", "lower"), InputDef("pe_forward", "lower"),
-         InputDef("peg", "lower"), InputDef("price_to_book", "lower"),
-         InputDef("fcf_yield", "higher")],
+        "valuation",
+        "Valoración",
+        "sector",
+        [
+            InputDef("pe_trailing", "lower"),
+            InputDef("pe_forward", "lower"),
+            InputDef("peg", "lower"),
+            InputDef("price_to_book", "lower"),
+            InputDef("fcf_yield", "higher"),
+        ],
         "¿Cuánto pagas por lo que la empresa gana y genera, comparado con su sector?",
     ),
     ComponentDef(
-        "health", "Salud financiera", "sector",
-        [InputDef("debt_to_equity", "lower"), InputDef("fcf_margin", "higher"),
-         InputDef("roe", "higher"), InputDef("operating_margin", "higher")],
+        "health",
+        "Salud financiera",
+        "sector",
+        [
+            InputDef("debt_to_equity", "lower"),
+            InputDef("fcf_margin", "higher"),
+            InputDef("roe", "higher"),
+            InputDef("operating_margin", "higher"),
+        ],
         "¿Es rentable, genera caja y su deuda es razonable para su sector?",
     ),
     ComponentDef(
-        "growth", "Crecimiento", "sector",
+        "growth",
+        "Crecimiento",
+        "sector",
         [InputDef("revenue_growth", "higher"), InputDef("earnings_growth", "higher")],
         "¿Crecen sus ventas y beneficios más que los de su sector? (último trimestre interanual)",
     ),
     ComponentDef(
-        "momentum", "Momentum", "universe",
-        [InputDef("ret_12m", "higher"), InputDef("ret_6m", "higher"),
-         InputDef("dist_sma200", "higher")],
+        "momentum",
+        "Momentum",
+        "universe",
+        [
+            InputDef("ret_12m", "higher"),
+            InputDef("ret_6m", "higher"),
+            InputDef("dist_sma200", "higher"),
+        ],
         "¿Cómo se ha comportado el precio en los últimos 6–12 meses frente al resto?",
     ),
     ComponentDef(
-        "risk", "Riesgo (más alto = menos riesgo)", "universe",
+        "risk",
+        "Riesgo (más alto = menos riesgo)",
+        "universe",
         [InputDef("vol_1y", "lower"), InputDef("mdd_1y", "higher"), InputDef("beta", "lower")],
         "¿Cuánto oscila y cuánto ha llegado a caer el precio frente al resto?",
     ),
-]  # fmt: skip
+]
 
 DEFAULT_WEIGHTS: dict[str, float] = {c.key: 0.2 for c in COMPONENTS}
 

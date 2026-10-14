@@ -49,9 +49,14 @@ with st.container(border=True):
     min_growth = c1.number_input("Crec. ventas mínimo (%)", value=None, step=1.0)
     min_ret = c2.number_input("Rentab. 12 m mínima (%)", value=None, step=5.0)
     max_vol = c3.number_input("Volatilidad máx. (%)", min_value=0.0, value=None, step=5.0)
-    max_mdd = c4.number_input("Caída máx. 1 año (%) ≤", min_value=0.0, value=None, step=5.0,
-                              help="Por ejemplo 20 = solo empresas que no han caído más de un "
-                              "20 % desde un máximo en el último año.")  # fmt: skip
+    max_mdd = c4.number_input(
+        "Caída máx. 1 año (%) ≤",
+        min_value=0.0,
+        value=None,
+        step=5.0,
+        help="Por ejemplo 20 = solo empresas que no han caído más de un "
+        "20 % desde un máximo en el último año.",
+    )
 
 filters: list[Filter] = []
 if min_score:
@@ -77,10 +82,26 @@ result = apply_filters(df, filters, sectors, regions).sort_values("score", ascen
 # --- Resultados ----------------------------------------------------------------
 st.markdown(f"**{len(result)}** de {len(df)} empresas cumplen los filtros.")
 view = result.assign(sector=result["sector"].map(sector_es))[
-    ["ticker", "name", "sector", "region", "score", "score_valuation", "score_health",
-     "score_growth", "score_momentum", "score_risk", "pe_trailing", "roe", "dividend_yield",
-     "debt_to_equity", "revenue_growth", "ret_12m", "vol_1y"]
-]  # fmt: skip
+    [
+        "ticker",
+        "name",
+        "sector",
+        "region",
+        "score",
+        "score_valuation",
+        "score_health",
+        "score_growth",
+        "score_momentum",
+        "score_risk",
+        "pe_trailing",
+        "roe",
+        "dividend_yield",
+        "debt_to_equity",
+        "revenue_growth",
+        "ret_12m",
+        "vol_1y",
+    ]
+]
 pct_cols = ["roe", "dividend_yield", "revenue_growth", "ret_12m", "vol_1y"]
 view[pct_cols] = view[pct_cols] * 100
 score_cfg = {"min_value": 0, "max_value": 100, "format": "%.0f"}
@@ -101,8 +122,9 @@ event = st.dataframe(
         "score_health": st.column_config.NumberColumn("Salud", format="%.0f"),
         "score_growth": st.column_config.NumberColumn("Crec.", format="%.0f"),
         "score_momentum": st.column_config.NumberColumn("Mom.", format="%.0f"),
-        "score_risk": st.column_config.NumberColumn("Riesgo", format="%.0f",
-                                                    help="Más alto = menos riesgo"),
+        "score_risk": st.column_config.NumberColumn(
+            "Riesgo", format="%.0f", help="Más alto = menos riesgo"
+        ),
         "pe_trailing": st.column_config.NumberColumn("PER", format="%.1f"),
         "roe": st.column_config.NumberColumn("ROE %", format="%.1f"),
         "dividend_yield": st.column_config.NumberColumn("Div. %", format="%.2f"),
@@ -111,7 +133,7 @@ event = st.dataframe(
         "ret_12m": st.column_config.NumberColumn("Rent. 12 m %", format="%.1f"),
         "vol_1y": st.column_config.NumberColumn("Volat. %", format="%.1f"),
     },
-)  # fmt: skip
+)
 st.caption(
     "Score y componentes 0–100 (50 = mediana de los comparables). Selecciona filas para "
     "añadirlas a la watchlist o compararlas. Datos: foto del universo (Yahoo Finance)."
@@ -124,7 +146,10 @@ if c1.button(f"➕ Añadir a la watchlist ({len(picked)})", disabled=not picked)
     names = dict(zip(result["ticker"], result["name"], strict=True))
     added = [t for t in picked if repo.add(t, names.get(t, t))]
     st.success(f"Añadidas: {', '.join(added) or 'ninguna (ya estaban)'}")
-if c2.button("⚖️ Comparar seleccionadas", disabled=not 2 <= len(picked) <= 4,
-             help="Selecciona entre 2 y 4 empresas."):  # fmt: skip
+if c2.button(
+    "⚖️ Comparar seleccionadas",
+    disabled=not 2 <= len(picked) <= 4,
+    help="Selecciona entre 2 y 4 empresas.",
+):
     st.session_state["compare"] = picked
     st.switch_page("views/comparador.py")

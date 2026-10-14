@@ -21,9 +21,11 @@ disclaimer()
 svc = market_data()
 snap = universe_panel("comparador")
 
-options = list(dict.fromkeys(
-    watchlist_repo().tickers() + (snap.df["ticker"].tolist() if snap is not None else [])
-))  # fmt: skip
+options = list(
+    dict.fromkeys(
+        watchlist_repo().tickers() + (snap.df["ticker"].tolist() if snap is not None else [])
+    )
+)
 default = [t for t in st.session_state.get("compare", []) if t in options] or options[:2]
 c1, c2 = st.columns([3, 1])
 picked = c1.multiselect("Empresas (2–4)", options, default=default, max_selections=4)

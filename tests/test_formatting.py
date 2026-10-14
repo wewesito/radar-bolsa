@@ -28,6 +28,8 @@ def test_fmt_big():
     assert fmt_big(6_487_897_600, "USD") == "6,5 mil M$"
     assert fmt_big(-2_500_000, "EUR") == "−2,5 M€"
     assert fmt_big(3_000_000_000, "CHF") == "3,0 mil M CHF"
+    assert fmt_big(6469.3, "EUR") == "6.469 €"
+    assert fmt_big(-152.4, "EUR") == "−152 €"
     assert fmt_big(None) == NA
 
 

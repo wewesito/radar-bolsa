@@ -32,8 +32,24 @@ def test_ema_weights_recent_more():
 # Ejemplo clásico de Wilder publicado por StockCharts: RSI(14) = 70,53 y luego 66,32.
 # Su hoja redondea los promedios intermedios a 2 decimales; nosotros no, de ahí ~0,07 de
 # diferencia. Con la fórmula de pandas ewm (semilla distinta) saldría ~50: muy lejos.
-WILDER = [44.34, 44.09, 44.15, 43.61, 44.33, 44.83, 45.10, 45.42, 45.84, 46.08, 45.89,
-          46.03, 45.61, 46.28, 46.28, 46.00]  # fmt: skip
+WILDER = [
+    44.34,
+    44.09,
+    44.15,
+    43.61,
+    44.33,
+    44.83,
+    45.10,
+    45.42,
+    45.84,
+    46.08,
+    45.89,
+    46.03,
+    45.61,
+    46.28,
+    46.28,
+    46.00,
+]
 
 
 def test_rsi_matches_reference_example():

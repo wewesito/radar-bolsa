@@ -287,3 +287,69 @@ def normalized_chart(series: dict[str, pd.Series], log_scale: bool = False) -> g
         separators=",.",
     )
     return fig
+
+
+def portfolio_chart(values: pd.DataFrame, shadow: pd.Series | None, bench_name: str) -> go.Figure:
+    """Valor de la cartera frente a su cartera sombra en el índice y el dinero aportado."""
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=values.index,
+            y=values["value"],
+            name="Tu cartera",
+            line=dict(color=SERIES[0], width=2),
+            hovertemplate="%{y:,.0f} €",
+        )
+    )
+    if shadow is not None and not shadow.empty:
+        fig.add_trace(
+            go.Scatter(
+                x=shadow.index,
+                y=shadow,
+                name=f"Mismo dinero en {bench_name}",
+                line=dict(color=SERIES[1], width=2),
+                hovertemplate="%{y:,.0f} €",
+            )
+        )
+    fig.add_trace(
+        go.Scatter(
+            x=values.index,
+            y=values["contributed"],
+            name="Dinero neto aportado",
+            line=dict(color=MUTED, width=1.5, dash="dash", shape="hv"),
+            hovertemplate="%{y:,.0f} €",
+        )
+    )
+    fig.update_layout(
+        height=420,
+        margin=dict(l=10, r=10, t=10, b=10),
+        hovermode="x unified",
+        yaxis_title="€",
+        legend=dict(orientation="h", y=-0.15),
+        separators=",.",
+    )
+    return fig
+
+
+def allocation_bars(weights: pd.Series) -> go.Figure:
+    """Barras horizontales de pesos (una sola serie, un solo color, valores etiquetados)."""
+    w = weights.sort_values()
+    fig = go.Figure(
+        go.Bar(
+            x=w * 100,
+            y=w.index,
+            orientation="h",
+            marker_color=SERIES[0],
+            marker_line_width=0,
+            text=[f"{v * 100:.1f} %".replace(".", ",") for v in w],
+            textposition="outside",
+            hovertemplate="%{y}: %{x:.1f} %<extra></extra>",
+        )
+    )
+    fig.update_layout(
+        height=max(160, 34 * len(w) + 40),
+        margin=dict(l=10, r=40, t=10, b=10),
+        xaxis=dict(range=[0, min(110, w.max() * 100 + 15)], title="% de la cartera"),
+        separators=",.",
+    )
+    return fig

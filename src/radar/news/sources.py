@@ -28,18 +28,43 @@ CACHE_VERSION = "v2"  # v2: búsqueda con términos financieros
 
 # Nombre con el que la prensa llama a las empresas del IBEX (el legal no sirve para buscar)
 COMMON_NAMES = {
-    "ITX.MC": "Inditex", "SAN.MC": "Banco Santander", "TEF.MC": "Telefónica",
-    "IBE.MC": "Iberdrola", "BBVA.MC": "BBVA", "REP.MC": "Repsol", "CABK.MC": "CaixaBank",
-    "AMS.MC": "Amadeus", "FER.MC": "Ferrovial", "ELE.MC": "Endesa", "NTGY.MC": "Naturgy",
-    "IAG.MC": "IAG Iberia", "AENA.MC": "Aena", "GRF.MC": "Grifols", "MAP.MC": "Mapfre",
-    "ACS.MC": "ACS Florentino", "SAB.MC": "Banco Sabadell", "BKT.MC": "Bankinter",
-    "UNI.MC": "Unicaja", "CLNX.MC": "Cellnex", "RED.MC": "Redeia", "ENG.MC": "Enagás",
-    "ACX.MC": "Acerinox", "ANA.MC": "Acciona", "ANE.MC": "Acciona Energía",
-    "COL.MC": "Inmobiliaria Colonial", "FDR.MC": "Fluidra", "IDR.MC": "Indra",
-    "LOG.MC": "Logista", "MRL.MC": "Merlin Properties", "MTS.MC": "ArcelorMittal",
-    "PUIG.MC": "Puig", "ROVI.MC": "Laboratorios Rovi", "SCYR.MC": "Sacyr", "SLR.MC": "Solaria",
+    "ITX.MC": "Inditex",
+    "SAN.MC": "Banco Santander",
+    "TEF.MC": "Telefónica",
+    "IBE.MC": "Iberdrola",
+    "BBVA.MC": "BBVA",
+    "REP.MC": "Repsol",
+    "CABK.MC": "CaixaBank",
+    "AMS.MC": "Amadeus",
+    "FER.MC": "Ferrovial",
+    "ELE.MC": "Endesa",
+    "NTGY.MC": "Naturgy",
+    "IAG.MC": "IAG Iberia",
+    "AENA.MC": "Aena",
+    "GRF.MC": "Grifols",
+    "MAP.MC": "Mapfre",
+    "ACS.MC": "ACS Florentino",
+    "SAB.MC": "Banco Sabadell",
+    "BKT.MC": "Bankinter",
+    "UNI.MC": "Unicaja",
+    "CLNX.MC": "Cellnex",
+    "RED.MC": "Redeia",
+    "ENG.MC": "Enagás",
+    "ACX.MC": "Acerinox",
+    "ANA.MC": "Acciona",
+    "ANE.MC": "Acciona Energía",
+    "COL.MC": "Inmobiliaria Colonial",
+    "FDR.MC": "Fluidra",
+    "IDR.MC": "Indra",
+    "LOG.MC": "Logista",
+    "MRL.MC": "Merlin Properties",
+    "MTS.MC": "ArcelorMittal",
+    "PUIG.MC": "Puig",
+    "ROVI.MC": "Laboratorios Rovi",
+    "SCYR.MC": "Sacyr",
+    "SLR.MC": "Solaria",
     "^IBEX": "Ibex 35",
-}  # fmt: skip
+}
 
 _LEGAL_SUFFIX = re.compile(
     r"[,.]?\s+(S\.?A\.?U?|S\.?E\.?|Inc|Corp(oration)?|Co|Ltd|plc|AG|N\.?V\.?|SpA|S\.p\.A|"
@@ -82,8 +107,9 @@ def parse_google_rss(xml_text: str) -> list[NewsItem]:
             published = parsedate_to_datetime(pub).astimezone(UTC) if pub else None
         except (TypeError, ValueError):
             published = None
-        items.append(NewsItem(title, it.findtext("link") or "", publisher, published,
-                              "Google News"))  # fmt: skip
+        items.append(
+            NewsItem(title, it.findtext("link") or "", publisher, published, "Google News")
+        )
     return items
 
 
@@ -108,21 +134,27 @@ def finnhub_news(ticker: str, api_key: str, days: int = 14) -> list[NewsItem]:
     try:
         r = requests.get(
             "https://finnhub.io/api/v1/company-news",
-            params={"symbol": ticker, "from": str(today - timedelta(days=days)),
-                    "to": str(today), "token": api_key},
+            params={
+                "symbol": ticker,
+                "from": str(today - timedelta(days=days)),
+                "to": str(today),
+                "token": api_key,
+            },
             timeout=TIMEOUT,
-        )  # fmt: skip
+        )
         r.raise_for_status()
     except requests.RequestException as e:
         raise ProviderUnavailableError(f"Finnhub no responde: {e}") from e
     return [
         NewsItem(
-            d.get("headline", ""), d.get("url", ""), d.get("source", ""),
+            d.get("headline", ""),
+            d.get("url", ""),
+            d.get("source", ""),
             datetime.fromtimestamp(d["datetime"], UTC) if d.get("datetime") else None,
             "Finnhub",
         )
         for d in r.json()[:30]
-    ]  # fmt: skip
+    ]
 
 
 def get_news(cache: Cache, ticker: str, name: str, limit: int = 25) -> list[NewsItem]:
@@ -149,8 +181,9 @@ def get_news(cache: Cache, ticker: str, name: str, limit: int = 25) -> list[News
         raise errors[0]
 
     seen, unique = set(), []
-    for it in sorted(items, key=lambda i: i.published or datetime.min.replace(tzinfo=UTC),
-                     reverse=True):  # fmt: skip
+    for it in sorted(
+        items, key=lambda i: i.published or datetime.min.replace(tzinfo=UTC), reverse=True
+    ):
         norm = it.title.lower().strip()
         if norm and norm not in seen:
             seen.add(norm)

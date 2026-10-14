@@ -14,5 +14,6 @@ pages = [
     st.Page("views/empresa.py", title="Empresa", icon="🏢"),
     st.Page("views/screener.py", title="Screener", icon="🔎"),
     st.Page("views/comparador.py", title="Comparador", icon="⚖️"),
+    st.Page("views/cartera.py", title="Cartera simulada", icon="💼"),
 ]
 st.navigation(pages).run()

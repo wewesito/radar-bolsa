@@ -27,7 +27,8 @@ def fmt_pct(x: float | None, decimals: int = 1, signed: bool = False) -> str:
 
 
 def fmt_big(x: float | None, currency: str | None = None) -> str:
-    """Cantidades grandes abreviadas: 170.079.502.336 → '170,1 mil M€'."""
+    """Cantidades grandes abreviadas (170.079.502.336 → '170,1 mil M€'); menores de un
+    millón, completas (6.469 €)."""
     if x is None:
         return NA
     sym = CURRENCY_SYMBOLS.get(currency or "", currency or "")
@@ -36,10 +37,9 @@ def fmt_big(x: float | None, currency: str | None = None) -> str:
         body = f"{fmt_number(a / 1e9, 1)} mil M"
     elif a >= 1e6:
         body = f"{fmt_number(a / 1e6, 1)} M"
-    elif a >= 1e3:
-        body = f"{fmt_number(a / 1e3, 1)} mil"
     else:
-        body = fmt_number(a, 0)
+        # Por debajo del millón, la cifra completa se lee mejor: 6.469 €
+        return f"{sign}{fmt_number(a, 0)} {sym}".rstrip()
     # Símbolos de un carácter van pegados (M€); códigos largos, separados (M CHF).
     return f"{sign}{body}{sym}" if len(sym) == 1 else f"{sign}{body} {sym}".rstrip()
 

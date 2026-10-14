@@ -16,6 +16,23 @@ MIGRATIONS: list[str] = [
         added_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
     """,
+    # v2: operaciones de la cartera simulada
+    """
+    CREATE TABLE trades (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        ticker     TEXT NOT NULL,
+        side       TEXT NOT NULL CHECK (side IN ('BUY', 'SELL')),
+        quantity   REAL NOT NULL CHECK (quantity > 0),
+        price      REAL NOT NULL CHECK (price > 0),
+        fee        REAL NOT NULL DEFAULT 0 CHECK (fee >= 0),
+        currency   TEXT NOT NULL,
+        trade_date TEXT NOT NULL,          -- AAAA-MM-DD
+        fx_to_eur  REAL NOT NULL CHECK (fx_to_eur > 0),
+        note       TEXT,
+        created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+    CREATE INDEX idx_trades_ticker ON trades (ticker);
+    """,
 ]
 
 
