@@ -13,10 +13,10 @@ from urllib.parse import quote_plus
 
 import requests
 
-from radar import config
 from radar.data.cache import Cache
 from radar.data.markets import US, exchange_for
 from radar.errors import ProviderUnavailableError
+from radar.secrets import get_secret
 
 TTL_NEWS = 30 * 60
 FINANCE_TERMS = {
@@ -170,9 +170,10 @@ def get_news(cache: Cache, ticker: str, name: str, limit: int = 25) -> list[News
         items += google_news(search_name(ticker, name), "en" if is_us else "es")
     except ProviderUnavailableError as e:
         errors.append(e)
-    if is_us and config.FINNHUB_API_KEY:
+    finnhub_key = get_secret("finnhub")
+    if is_us and finnhub_key:
         try:
-            items += finnhub_news(ticker, config.FINNHUB_API_KEY)
+            items += finnhub_news(ticker, finnhub_key)
         except ProviderUnavailableError as e:
             errors.append(e)
     if not items and errors:

@@ -67,7 +67,30 @@ class Fundamentals:
     currency: str | None
     metrics: dict[str, float | None] = field(default_factory=dict)
     fund_family: str | None = None  # gestora, solo ETFs
+    price_currency: str | None = None  # moneda en la que cotiza (puede diferir de la contable)
     last_report: datetime | None = None  # último trimestre reportado
     as_of: datetime | None = None  # cuándo se descargó
     source: str = ""
     stale: bool = False
+
+
+@dataclass(frozen=True)
+class Financials:
+    """Partidas del último ejercicio anual (en la moneda de las cuentas). None = sin dato."""
+
+    ticker: str
+    items: dict[str, float | None]
+    period_end: datetime | None  # cierre del ejercicio
+    as_of: datetime  # cuándo se descargó
+    source: str
+    stale: bool = False
+
+
+@dataclass(frozen=True)
+class SearchResult:
+    """Un resultado del buscador de valores."""
+
+    ticker: str
+    name: str
+    quote_type: str | None
+    exchange: str | None

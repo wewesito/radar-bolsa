@@ -10,7 +10,7 @@ __pycache__/
 .ruff_cache/
 
 # Datos locales (BD, caché)
-data/
+/data/
 *.db
 
 # Sistema / editor
