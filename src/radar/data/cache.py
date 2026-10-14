@@ -6,9 +6,9 @@ Una conexión por operación: Streamlit ejecuta cada sesión en su propio hilo.
 
 import json
 import sqlite3
-from contextlib import contextmanager
 import time
 from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from io import StringIO

@@ -97,9 +97,25 @@ COMPONENTS: list[ComponentDef] = [
         [InputDef("vol_1y", "lower"), InputDef("mdd_1y", "higher"), InputDef("beta", "lower")],
         "¿Cuánto oscila y cuánto ha llegado a caer el precio frente al resto?",
     ),
+    ComponentDef(
+        "dividend",
+        "Dividendo",
+        "sector",
+        [InputDef("dividend_yield", "higher"), InputDef("payout_ratio", "lower")],
+        "¿Paga más dividendo que su sector, y de forma sostenible? (solo cuenta si tu "
+        "objetivo es cobrar dividendos)",
+    ),
 ]
 
-DEFAULT_WEIGHTS: dict[str, float] = {c.key: 0.2 for c in COMPONENTS}
+# El dividendo pesa 0 salvo que el perfil tenga como objetivo cobrar dividendos.
+DEFAULT_WEIGHTS: dict[str, float] = {
+    "valuation": 0.2,
+    "health": 0.2,
+    "growth": 0.2,
+    "momentum": 0.2,
+    "risk": 0.2,
+    "dividend": 0.0,
+}
 
 
 @dataclass(frozen=True)

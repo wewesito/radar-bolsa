@@ -57,6 +57,14 @@ MIGRATIONS: list[str] = [
         seen         INTEGER NOT NULL DEFAULT 0
     );
     """,
+    # v4: ajustes de la app (perfil inversor, preferencias) como JSON por clave
+    """
+    CREATE TABLE settings (
+        key        TEXT PRIMARY KEY,
+        value      TEXT NOT NULL,
+        updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
+    );
+    """,
 ]
 
 

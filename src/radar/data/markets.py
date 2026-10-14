@@ -27,7 +27,9 @@ EXCHANGES: dict[str, Exchange] = {
     "DE": Exchange("Xetra", "Alemania", "Europe/Berlin", time(9), time(17, 30), 15),
     "F": Exchange("Fráncfort", "Alemania", "Europe/Berlin", time(8), time(22), 15),
     "PA": Exchange("Euronext París", "Francia", "Europe/Paris", time(9), time(17, 30), 15),
-    "AS": Exchange("Euronext Ámsterdam", "Países Bajos", "Europe/Amsterdam", time(9), time(17, 30), 15),
+    "AS": Exchange(
+        "Euronext Ámsterdam", "Países Bajos", "Europe/Amsterdam", time(9), time(17, 30), 15
+    ),
     "BR": Exchange("Euronext Bruselas", "Bélgica", "Europe/Brussels", time(9), time(17, 30), 15),
     "LS": Exchange("Euronext Lisboa", "Portugal", "Europe/Lisbon", time(8), time(16, 30), 15),
     "MI": Exchange("Borsa Italiana", "Italia", "Europe/Rome", time(9), time(17, 30), 15),
