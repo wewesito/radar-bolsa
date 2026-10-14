@@ -35,7 +35,9 @@ cp .env.example .env   # opcional: clave gratuita de Finnhub para noticias de EE
 streamlit run app/Home.py
 ```
 
-Se abre en http://localhost:8501. La primera vez que entres en **Fundamentales**, **Score**, **Screener** o **Comparador**, pulsa *Construir universo* para descargar el universo de referencia (~140 empresas, ~30 s). Conviene actualizarlo una vez por semana.
+Se abre en http://localhost:8501. La primera vez que ejecutas Streamlit te pide un email (opcional): pulsa Enter para saltarlo, o arranca con `--server.headless true` y abre la dirección a mano. Para pararla, `Ctrl+C` en la terminal.
+
+La primera vez que entres en **Fundamentales**, **Score**, **Screener** o **Comparador**, pulsa *Construir universo* para descargar el universo de referencia (~140 empresas, ~30 s). Conviene actualizarlo una vez por semana.
 
 ### Tickers
 
