@@ -28,6 +28,7 @@ from radar.education.glossary import ENTRIES
 from radar.education.guides import GUIDES
 from radar.errors import ProviderUnavailableError, RadarError, TickerNotFoundError
 from radar.etfs import BY_TICKER as ETF_INFO
+from radar.fundamentals.sector import country_es, sector_es
 from radar.portfolio import service as portfolio_service
 from radar.portfolio.calc import PortfolioError
 from radar.portfolio.market import BENCHMARKS
@@ -404,16 +405,18 @@ def create_app(engine: Engine, token: str) -> FastAPI:
     def holding_info(ticker: str) -> dict:
         row = engine.universe_row(ticker) if engine.snapshot is not None else None
         if row:
-            return {
-                "name": row.get("name"),
-                "sector": row.get("sector"),
-                "country": row.get("country"),
-            }
-        try:
-            f = engine.svc.get_fundamentals(ticker)
-            return {"name": f.name, "sector": f.sector, "country": f.country}
-        except RadarError:
-            return {}
+            name, sector, country = row.get("name"), row.get("sector"), row.get("country")
+        else:
+            try:
+                f = engine.svc.get_fundamentals(ticker)
+            except RadarError:
+                return {}
+            name, sector, country = f.name, f.sector, f.country
+        return {
+            "name": name,
+            "sector": sector_es(sector) if sector else None,
+            "country": country_es(country) if country else None,
+        }
 
     @api.get("/portfolio")
     def portfolio(bench: str = "EUNL.DE") -> dict:
