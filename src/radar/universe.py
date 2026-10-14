@@ -28,12 +28,13 @@ from radar.indicators.performance import (
     period_returns,
     roic,
 )
+from radar.indicators.quality import price_warning
 from radar.indicators.risk import price_stats
 from radar.models import Fundamentals
 from radar.universe_list import UNIVERSE, spain_index
 
 # v2: + precio; v3: + moneda; v4: + España, ETFs, plazos y ROIC
-SNAPSHOT_KEY = "universe:snapshot:v5"  # v5: + fecha del último cierre
+SNAPSHOT_KEY = "universe:snapshot:v6"  # v6: + aviso de datos de precio sospechosos
 STALE_AFTER_DAYS = 7
 TEXT_COLUMNS = [
     "ticker",
@@ -51,6 +52,7 @@ TEXT_COLUMNS = [
     "last_close",
     "fundamentals_as_of",
     "last_report",
+    "data_warning",
 ]
 # Sin fundamentales de negocio en bancos y aseguradoras (su deuda es su materia prima).
 NO_ROIC_SECTORS = {"Financial Services"}
@@ -107,6 +109,7 @@ def company_row(svc: MarketDataService, ticker: str) -> dict:
         price_col = data["PriceClose"] if "PriceClose" in data else data["Close"]
         row["price"] = float(price_col.iloc[-1])
         row.update(price_stats(data["Close"]))
+        row["data_warning"] = price_warning(price_col)
         if long:
             row.update(period_returns(price_col, data["Close"]))
             if "Dividends" in data:

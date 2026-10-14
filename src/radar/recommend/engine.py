@@ -9,6 +9,8 @@ Acciones
   millones de capitalización (por debajo, comprar y vender sin mover el precio es difícil).
 - Evitar: puntuación < 40, riesgo dos niveles por encima de tu tolerancia, o sin cotizar
   desde hace más de 10 días (suele ser una exclusión de bolsa, p. ej. tras una OPA).
+- Datos de precio sospechosos (saltos diarios imposibles, ver `indicators/quality.py`): nunca
+  «Comprar»; sale «Vigilar» con el aviso.
 - Vigilar: el resto.
 
 ETFs (se comparan con los demás ETFs de referencia en coste, tamaño, riesgo y momentum)
@@ -417,6 +419,10 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
         last = pd.Timestamp(row["last_close"]).strftime("%d/%m/%Y")
         checks.append(RuleCheck("Cotiza con normalidad", False, f"Último cierre: {last}"))
 
+    warning = row.get("data_warning") or None
+    if warning:
+        checks.append(RuleCheck("Datos de precio fiables", False, warning))
+
     pros, cons = pick_reasons(res.components, currency)
     if profitable is False:
         cons.insert(0, Reason("Está en pérdidas: no gana dinero con su negocio actual."))
@@ -439,6 +445,9 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
     elif score is None:
         label = "watch"
         summary = "No hay datos suficientes para puntuarla: revisa sus números a mano."
+    elif warning and score >= BUY_SCORE:
+        label = "watch"
+        summary = "Sus datos de precio parecen erróneos: no es fiable darle señal de compra."
     elif score < AVOID_SCORE:
         label = "avoid"
         summary = (

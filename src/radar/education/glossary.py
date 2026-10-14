@@ -506,7 +506,8 @@ ENTRIES: list[Entry] = [
         "Una etiqueta que resume, con reglas fijas, la puntuación, la valoración y el riesgo "
         "de un valor frente a tu perfil.",
         "Comprar: puntuación ≥ 65, precio dentro o por debajo del rango de entrada, riesgo "
-        "dentro de tu tolerancia, beneficio positivo y al menos 200 millones de capitalización. "
+        "dentro de tu tolerancia, beneficio positivo, al menos 200 millones de capitalización y "
+        "datos de precio sin saltos imposibles. "
         "Evitar: puntuación < 40 o riesgo dos "
         "niveles por encima de tu tolerancia. Vigilar: el resto.",
         "Úsala como punto de partida para estudiar el valor, no como orden.",
