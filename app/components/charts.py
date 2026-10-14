@@ -353,3 +353,37 @@ def allocation_bars(weights: pd.Series) -> go.Figure:
         separators=",.",
     )
     return fig
+
+
+def compound_chart(series: dict[str, pd.Series], contributed: pd.Series) -> go.Figure:
+    """Evolución de una inversión (una línea por escenario) frente al dinero aportado."""
+    fig = go.Figure()
+    for i, (name, s) in enumerate(series.items()):
+        fig.add_trace(
+            go.Scatter(
+                x=s.index,
+                y=s,
+                name=name,
+                line=dict(color=SERIES[i], width=2),
+                hovertemplate="%{y:,.0f} €",
+            )
+        )
+    fig.add_trace(
+        go.Scatter(
+            x=contributed.index,
+            y=contributed,
+            name="Dinero aportado",
+            line=dict(color=MUTED, width=1.5, dash="dash"),
+            hovertemplate="%{y:,.0f} €",
+        )
+    )
+    fig.update_layout(
+        height=380,
+        margin=dict(l=10, r=10, t=10, b=10),
+        hovermode="x unified",
+        xaxis_title="Años",
+        yaxis_title="€",
+        legend=dict(orientation="h", y=-0.2),
+        separators=",.",
+    )
+    return fig

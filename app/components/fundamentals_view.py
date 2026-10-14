@@ -91,6 +91,9 @@ def render_fundamentals(f: Fundamentals, snap: UniverseSnapshot | None) -> None:
             },
         )
 
+    st.caption(
+        "📖 Explicación completa de cada métrica (cálculo, lectura y limitaciones) en Aprende."
+    )
     notes = [source_line(f.source, f.as_of, stale=f.stale).replace("dato de", "descargado")]
     if f.last_report:
         notes.append(f"último trimestre reportado: {fmt_dt(f.last_report).split()[0]}")

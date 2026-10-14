@@ -20,5 +20,6 @@ pages = [
     st.Page("views/comparador.py", title="Comparador", icon="⚖️"),
     st.Page("views/cartera.py", title="Cartera simulada", icon="💼"),
     st.Page("views/alertas.py", title="Alertas", icon="🔔"),
+    st.Page("views/aprende.py", title="Aprende", icon="📖"),
 ]
 st.navigation(pages).run()
