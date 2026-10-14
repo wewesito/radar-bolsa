@@ -1,0 +1,19 @@
+# Secretos
+.env
+
+# Entorno
+.venv/
+__pycache__/
+*.pyc
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# Datos locales (BD, caché)
+data/
+*.db
+
+# Sistema / editor
+.DS_Store
+.vscode/
+.idea/
