@@ -1,119 +1,131 @@
 # Radar Bolsa
 
-> ⚠️ **Herramienta educativa. No es asesoramiento financiero.** No ejecuta operaciones ni se conecta a ningún bróker. Presenta datos, puntuaciones y argumentos a favor y en contra; las decisiones son tuyas.
+> ℹ️ **Las recomendaciones las genera un modelo propio a partir de datos públicos. No garantizan rentabilidad y no sustituyen a un asesor financiero.** La app no ejecuta operaciones ni se conecta a ningún bróker.
 
-App personal de seguimiento y análisis bursátil, centrada en los mercados español y europeo (IBEX 35, Euro Stoxx) y con cobertura también de EE. UU. y de los ETFs. Está hecha con Python y Streamlit como proyecto de aprendizaje de análisis de datos, y todo cálculo es transparente: cada número muestra su fuente, su fecha y cómo se ha obtenido.
+App de escritorio para macOS que analiza acciones y ETFs de España, Europa y EE. UU. y propone en qué invertir según tu perfil. Cada recomendación explica por qué: su puntuación, 3 razones a favor, 3 riesgos, el nivel de riesgo y un rango de precio de entrada. Todo dato muestra su fuente y su fecha.
 
-## Funcionalidades
+## Funcionalidades (fase 1)
 
-| Página | Qué hace |
+| Sección | Qué hace |
 |---|---|
-| 👀 **Watchlist** | Seguimiento de acciones, ETFs e índices con refresco automático. Muestra el estado del mercado, el retraso declarado por la fuente y la antigüedad real del dato, y comprueba las alertas en cada refresco. |
-| 🏢 **Empresa** | Ficha con cinco secciones: **Gráfico** (velas o línea, de 1D a Máx, escala logarítmica), **Fundamentales** (comparados con la mediana del sector), **Técnico** (SMA 50/200, RSI, MACD, Bollinger, soportes y resistencias), **Score** (0–100 con desglose y fórmula) y **Noticias** (con sentimiento). |
-| 🔎 **Screener** | Filtra ~140 empresas por región, sector, score y métricas. |
-| ⚖️ **Comparador** | De 2 a 4 empresas lado a lado: evolución en base 100, métricas y score. |
-| 💼 **Cartera simulada** | Operaciones ficticias con FIFO, valoradas en euros (incluido el efecto divisa), comparadas con una "cartera sombra" en el MSCI World, el S&P 500 o el IBEX, y con su diversificación por posición, sector y país. |
-| 🔔 **Alertas** | Avisos al cruzar un umbral de precio, de variación diaria o de RSI, o un cruce con las medias de 50 o 200 sesiones. Se pueden comprobar también desde la terminal. |
-| 📖 **Aprende** | Glosario de todas las métricas, conceptos básicos, calculadora de interés compuesto y del efecto de las comisiones, perfil de riesgo orientativo y fiscalidad general en España. |
+| **Test de perfil** | 5 preguntas (horizonte, tolerancia al riesgo, cantidad, objetivo y experiencia) → perfil conservador, moderado o dinámico, con un reparto orientativo entre ETFs, acciones y renta fija. Se puede repetir cuando quieras. |
+| **Mis recomendaciones** | Ranking de unos 225 valores (acciones y ETFs UCITS) con la señal **Comprar / Vigilar / Evitar** ajustada a tu perfil. Cada tarjeta muestra la puntuación, el riesgo, el precio frente al rango de entrada y el motivo principal. |
+| **Detalle** | Gráfico de precio, las condiciones que cumple o no para la señal, 3 razones y 3 riesgos en lenguaje sencillo, rango de entrada con sus cálculos, nivel de riesgo, desglose de la puntuación y «Cómo comprar esto». |
+| **España** | IBEX 35 y Mercado Continuo (unas 108 empresas): Top 10 combinado y rankings ordenables por rentabilidad en bolsa (año, 1, 3 y 5 años, con y sin dividendos), negocio (ROE, ROIC, márgenes, crecimiento), dividendo (rentabilidad, años seguidos, payout, sostenibilidad) y valoración (PER y P/VC frente al sector). Con filtro por sector. |
+| **Inicio** | Índices (IBEX 35, Euro Stoxx 50, S&P 500, EUR/USD), tus mejores oportunidades y el estado de los datos. |
+| **Aprender** | Glosario de todas las métricas, con buscador. |
+| **Buscador** | Por nombre o ticker, sin tildes («telefonica» encuentra Telefónica). Si el valor no está en el universo, se busca en Yahoo y se puntúa al momento. |
+
+Cada métrica tiene un icono **?** con una explicación sencilla. Modo claro y oscuro, números en formato español (1.234,56 €) y horas de Madrid con su zona.
+
+**Próximas fases:** cartera de ejemplo por perfil, metodología y backtest frente al IBEX 35 y el S&P 500 (fase 2); guías de «Cómo invertir» (fase 3); cartera, alertas con notificaciones de escritorio y sección Aprender completa (fase 4).
 
 ## Instalación
 
-Requisitos: Python 3.11 o superior (desarrollado con 3.14).
+Ver la guía paso a paso: **[docs/INSTALACION.md](docs/INSTALACION.md)**. Explica cómo instalar el `.dmg`, crear el acceso directo en el Dock o el Escritorio y volver a generar la app.
+
+En resumen, para generarla desde el código:
 
 ```bash
-git clone <url-del-repo> radar-bolsa
-cd radar-bolsa
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-cp .env.example .env   # opcional: clave gratuita de Finnhub para noticias de EE. UU.
+bash desktop/scripts/build_app.sh     # → desktop/src-tauri/target/release/bundle/dmg/*.dmg
 ```
 
-## Uso
+## Cómo funciona
 
-```bash
-streamlit run app/Home.py
+```
+┌──────────────────────── Radar Bolsa.app ─────────────────────────┐
+│  Ventana (Tauri + React)  ──HTTP 127.0.0.1 + token──▶  Motor      │
+│  desktop/src                                     (Python, FastAPI)│
+│  - pantallas, formato es-ES                      src/radar        │
+│  - nunca habla con Yahoo                         - datos + caché  │
+│                                                  - puntuación     │
+│  Rust (desktop/src-tauri) arranca el motor       - señal y perfil │
+│  con puerto libre y token aleatorio, y lo        - SQLite local   │
+│  cierra al salir.                                                 │
+└───────────────────────────────────────────────────────────────────┘
 ```
 
-Se abre en http://localhost:8501. La primera vez que ejecutas Streamlit te pide un email (opcional): pulsa Enter para saltarlo, o arranca con `--server.headless true` y abre la dirección a mano. Para pararla, `Ctrl+C` en la terminal.
-
-La primera vez que entres en **Fundamentales**, **Score**, **Screener** o **Comparador**, pulsa *Construir universo* para descargar el universo de referencia (~140 empresas, ~30 s). Conviene actualizarlo una vez por semana.
-
-### Tickers
-
-Se escribe el ticker con el sufijo de su bolsa (formato de Yahoo Finance):
-
-| Bolsa | Sufijo | Ejemplo |
-|---|---|---|
-| Madrid (BME) | `.MC` | `SAN.MC`, `ITX.MC`, `IBE.MC` |
-| Xetra (Alemania) | `.DE` | `SAP.DE`, `EUNL.DE` |
-| París · Ámsterdam · Milán | `.PA` · `.AS` · `.MI` | `MC.PA`, `ASML.AS`, `ENI.MI` |
-| Londres (precios en peniques) | `.L` | `SHEL.L` |
-| EE. UU. | (ninguno) | `AAPL`, `MSFT` |
-| Índices | `^` | `^IBEX`, `^GSPC` |
-
-Ojo: sin sufijo, `SAN` es el **ADR** de Santander en Nueva York (en dólares), no la acción de Madrid.
-
-### Alertas con la app cerrada (opcional)
-
-```bash
-.venv/bin/python -m radar.alerts.checker --notify   # notificación de macOS por cada alerta disparada
-```
-
-Se puede programar con `cron`, por ejemplo cada 15 minutos en horario de mercado.
+- La interfaz no ve a Yahoo: todo pasa por el motor, que cachea cada llamada con su TTL.
+- El motor solo escucha en `127.0.0.1` y exige el token que genera la app al arrancar.
+- Las API keys se guardan en el Llavero de macOS (`keyring`).
+- Los datos del usuario están en `~/Library/Application Support/Radar Bolsa/` (en desarrollo, en `data/`).
 
 ## Metodología (resumen)
 
-- **Comparación sectorial:** se usa la **mediana** del sector, que resiste mejor a los valores extremos. Se compara con la misma región (Europa o EE. UU.) si hay al menos 5 empresas; si no, con el sector a nivel mundial.
-- **Score (0–100):** cada métrica se convierte en un percentil frente a sus comparables.
-  - Valoración, salud y crecimiento se comparan con el sector; momentum y riesgo, con todo el universo.
-  - Cada componente es la media de sus percentiles; el total es la media ponderada de los componentes (20 % cada uno por defecto, ajustable).
-  - Si falta un componente, su peso se reparte entre los demás. Con menos de 3 componentes no se da total.
-- **RSI:** se calcula con el suavizado de Wilder, verificado contra su ejemplo de referencia.
-- **Cartera:** se usa FIFO (el método que exige la normativa española) y el tipo de cambio del día de cada operación. La "cartera sombra" invierte en el índice los mismos euros en las mismas fechas.
-- **Alertas:** saltan al cruzar el umbral, no mientras se cumple la condición (*edge-triggered*).
-- **Sentimiento:** léxico financiero en español e inglés con una regla de negación. Muestra las palabras detectadas en cada titular.
+- **Puntuación (0–100):** cada métrica se convierte en un percentil frente a sus comparables.
+  - Valoración, salud, crecimiento y dividendo se comparan con el sector (mediana, misma región si hay al menos 5 empresas).
+  - Momentum y riesgo se comparan con todo el universo.
+  - Los pesos dependen del perfil: el conservador pesa más salud y riesgo; el dinámico, crecimiento y momentum. El componente de dividendo solo cuenta si tu objetivo es cobrar dividendos.
+- **Señal (acciones):**
+  - **Comprar** si se cumplen todas estas condiciones: puntuación ≥ 65, precio dentro o por debajo del rango de entrada, riesgo dentro de tu tolerancia, beneficio positivo y al menos 200 M de capitalización.
+  - **Evitar** si la puntuación es < 40, si el riesgo está dos niveles por encima de tu tolerancia o si el valor no cotiza desde hace más de 10 días.
+  - **Vigilar** en el resto de casos.
+- **Señal (ETFs):** se comparan con los ETFs de referencia en coste, tamaño, riesgo y momentum. Un ETF «base de cartera» dentro de tu tolerancia sale como Comprar. La renta fija sale como Comprar si eres conservador o buscas conservar capital.
+- **Riesgo:**
+  - **Bajo:** volatilidad < 20 % y caída máxima < 20 % en un año.
+  - **Medio:** volatilidad < 32 % y caída < 35 %.
+  - **Alto:** el resto.
+  - Las empresas de menos de 1.000 M suben al menos a medio, y las de menos de 200 M, a alto.
+- **Rango de entrada:** el precio que tendría el valor con el PER, el P/VC y la rentabilidad FCF medianos de su sector, desde la estimación más baja hasta la mediana. No se da rango si hay menos de dos estimaciones o si discrepan más de 2,5 veces.
 
-## Fuentes de datos
+Todas las reglas están en el código con sus constantes (`src/radar/recommend/engine.py`, `src/radar/profile/investor.py`) y la app las muestra en cada recomendación.
 
-- **Yahoo Finance** (librería `yfinance`, no oficial): cotizaciones, históricos, fundamentales y tipos de cambio. Gratuita y con la mejor cobertura de Europa, pero sin garantías.
-- **Google News RSS**: noticias, para uso personal y no comercial. Las noticias de Yahoo devuelven listas vacías en la versión actual de `yfinance`.
-- **Finnhub** (opcional, con clave gratuita): noticias de empresas de EE. UU.
-- Para no saturar las APIs, todo pasa por una caché local en SQLite (`data/cache.db`): cotizaciones 60 s, históricos intradía 2 min, históricos diarios 6 h, fundamentales 24 h y noticias 30 min. Si la fuente falla, se muestran los últimos datos guardados, marcados como **antiguos**.
+## Fuentes de datos y limitaciones
 
-### Limitaciones conocidas de los datos
-
-- **Retraso:** las bolsas europeas llegan con unos 15 min de retraso. La watchlist muestra el retraso *declarado* por la fuente y la *antigüedad real* del dato, que no siempre coinciden.
-- **Volumen intradía incompleto** (1D y 1S): Yahoo no incluye las subastas ni todas las operaciones.
-- **Históricos antiguos con errores:** Yahoo devuelve a veces precios negativos o saltos falsos por *splits* mal ajustados. La app descarta los precios ≤ 0 y avisa de los saltos de más del 40 % entre velas.
-- **Fundamentales:** a los bancos les faltan métricas que no tienen sentido para ellos (deuda/patrimonio, margen bruto). Algunos PER salen sospechosos por ajustes de *splits*. Los ETFs europeos tienen poca información.
-- **Sector:** es una categoría gruesa. "Consumo cíclico" mezcla, por ejemplo, el lujo con los coches.
+- **Yahoo Finance** (`yfinance`, no oficial): cotizaciones, históricos, fundamentales y cuentas anuales. Gratuita y con la mejor cobertura de Europa, pero sin garantías. Las bolsas europeas llegan con unos 15 min de retraso.
+- **Google News RSS** y **Finnhub** (opcional): noticias (las usa la versión anterior).
+- **Caché:** cotizaciones 60 s, históricos diarios 6 h, fundamentales 24 h. Si la fuente falla, se muestra la última copia guardada, marcada como «copia antigua».
+- **Limitaciones:**
+  - A las empresas pequeñas del Continuo les faltan a veces fundamentales, y la app muestra «n/d».
+  - A Yahoo le falta la comisión (TER) de algunos ETFs, y la app remite a su KID.
+  - El historial de dividendos empieza como pronto en 2000.
+  - Los fundamentales son la foto actual: no hay series históricas fiables en fuentes gratuitas, y el backtest de la fase 2 lo tendrá en cuenta.
 
 ## Estructura
 
 ```
-src/radar/      lógica sin Streamlit, testeable
-  data/         proveedores (Yahoo), caché, servicio, mercados
-  fundamentals/ catálogo de métricas y comparación sectorial
-  indicators/   indicadores técnicos, riesgo y lecturas neutras
-  scoring/      score, screener y comparador
-  news/         fuentes de noticias y sentimiento
-  portfolio/    cartera simulada (FIFO, valoración, cartera sombra)
-  alerts/       reglas y comprobación de alertas
-  education/    glosario, conceptos y cálculos educativos
-  db/           SQLite con migraciones (watchlist, trades, alerts)
-app/            interfaz Streamlit (Home.py + views/ + components/)
-tests/          pytest sin red (proveedores falsos y datos sintéticos)
-data/           radar.db y cache.db; se crean solos (fuera de git)
+src/radar/        motor en Python (sin interfaz)
+  api/            API local (FastAPI) que usa la app de escritorio
+  data/           proveedor Yahoo, caché SQLite, servicio, bolsas y horarios
+  recommend/      señal Comprar/Vigilar/Evitar, riesgo, rango de entrada, textos
+  profile/        test de perfil inversor y sus reglas
+  scoring/        puntuación 0–100 (y screener de la versión anterior)
+  fundamentals/   catálogo de métricas y comparación sectorial
+  indicators/     técnicos, riesgo, rentabilidades por plazos, ROIC
+  spain.py        tabla de la sección España
+  etfs.py         ETFs UCITS de referencia
+  universe*.py    universo de ~225 valores y su foto
+  education/ portfolio/ alerts/ news/ db/
+desktop/          app de escritorio
+  src/            interfaz React + TypeScript
+  src-tauri/      ventana nativa (Rust) que arranca el motor
+  scripts/        empaquetado (motor con PyInstaller, app con Tauri), icono
+app/              versión anterior en Streamlit (se retira en la fase 4)
+docs/             guía de instalación
+tests/            pytest sin red
 ```
 
 ## Desarrollo
 
 ```bash
-pytest                          # 147 tests, sin red
-ruff check . && ruff format .   # lint y formato
+export PATH="$HOME/.local/node/bin:$HOME/.cargo/bin:$PATH"   # Node y Rust de usuario
+cd desktop && npm install
+
+npx tauri dev             # ventana de escritorio con recarga en caliente (usa el Python de .venv)
+
+# o, en el navegador:
+python -m radar.api --token dev --port 8765   # en una terminal (desde la raíz)
+npm run dev                                   # en otra → http://127.0.0.1:1420
+
+pytest                          # tests del motor, sin red
+npm test                        # tests de la interfaz (formato español)
+ruff check . && ruff format .
 ```
 
-> Streamlit solo recarga automáticamente los archivos de `app/`. Si cambias código en `src/`, reinicia `streamlit run`.
+Tras cambiar código en `src/radar`, reinicia el motor (o `tauri dev`).
+
+La versión anterior en Streamlit sigue funcionando mientras se migra: `streamlit run app/Home.py`.
 
 Las convenciones del proyecto están en [CLAUDE.md](CLAUDE.md).
