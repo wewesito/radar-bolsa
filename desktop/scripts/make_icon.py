@@ -21,9 +21,12 @@ def main(out: str) -> None:
     gd = ImageDraw.Draw(grad)
     for y in range(S):
         t = y / S
-        gd.line([(0, y), (S, y)], fill=tuple(int(a + (b - a) * t) for a, b in zip(BLUE_TOP, BLUE_BOTTOM)) + (255,))
+        rgb = tuple(int(a + (b - a) * t) for a, b in zip(BLUE_TOP, BLUE_BOTTOM, strict=True))
+        gd.line([(0, y), (S, y)], fill=rgb + (255,))
     mask = Image.new("L", (S, S), 0)
-    ImageDraw.Draw(mask).rounded_rectangle([margin, margin, S - margin, S - margin], radius, fill=255)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        [margin, margin, S - margin, S - margin], radius, fill=255
+    )
     img.paste(grad, (0, 0), mask)
 
     d = ImageDraw.Draw(img)
