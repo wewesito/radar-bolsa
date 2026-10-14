@@ -38,6 +38,7 @@ from radar.recommend.engine import LABEL_ES, Recommendation
 from radar.scoring.score import COMPONENTS
 from radar.secrets import secret_status, set_secret
 from radar.spain import spain_table
+from radar.tracking.evaluate import evaluate as evaluate_signals
 from radar.universe import STALE_AFTER_DAYS
 
 # Orígenes de la ventana de Tauri (macOS / Windows) y del servidor de desarrollo de Vite
@@ -453,6 +454,30 @@ def create_app(engine: Engine, token: str) -> FastAPI:
     def trades_delete(trade_id: int) -> dict:
         engine.trades.delete(trade_id)
         return {"ok": True}
+
+    # --- Seguimiento real de las señales ----------------------------------------------
+
+    @api.get("/signals/track")
+    def signals_track() -> dict:
+        """Cómo han rendido las señales registradas desde que se guardaron."""
+        engine.log_signals()  # por si es el primer uso del día
+        log = engine.signals.all()
+        prices: dict[str, float] = {}
+        if engine.snapshot is not None:
+            df = engine.snapshot.df
+            prices = {t: float(p) for t, p in zip(df["ticker"], df["price"], strict=True) if p == p}
+        days = sorted({s.logged_on for s in log})
+        return clean(
+            {
+                "first_date": days[0].isoformat() if days else None,
+                "days_logged": len(days),
+                "horizons": [
+                    asdict(h) for h in evaluate_signals(log, prices, datetime.now(UTC).date())
+                ],
+                "as_of": engine.snapshot.built_at if engine.snapshot else None,
+                "source": SOURCE,
+            }
+        )
 
     # --- Seguimiento (lista de favoritos) ---------------------------------------------
 

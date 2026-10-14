@@ -17,6 +17,7 @@ from radar.data.service import MarketDataService
 from radar.db.alerts import AlertsRepo
 from radar.db.database import Database
 from radar.db.settings import SettingsRepo
+from radar.db.signals import LoggedSignal, SignalsRepo
 from radar.db.trades import TradesRepo
 from radar.db.watchlist import WatchlistRepo
 from radar.profile.investor import (
@@ -61,11 +62,31 @@ class Engine:
         self.trades = TradesRepo(db)
         self.alerts = AlertsRepo(db)
         self.watchlist = WatchlistRepo(db)
+        self.signals = SignalsRepo(db)
         self.snapshot: UniverseSnapshot | None = load_universe(svc.cache)
         self.build = BuildStatus()
         self.backtest = BacktestRunner(svc)
         self._lock = threading.Lock()
         self._recs: dict[tuple, list[Recommendation]] = {}
+
+    # --- Registro de señales ----------------------------------------------------------
+
+    def log_signals(self) -> int:
+        """Guarda la foto de señales de hoy (una vez al día, con el perfil del usuario).
+
+        Con ella se mide después si las señales acertaron. Devuelve cuántas guardó.
+        """
+        today = datetime.now(UTC).date()
+        answers = self.answers()
+        if self.snapshot is None or answers is None or self.signals.has_day(today):
+            return 0
+        profile = compute_profile(answers)
+        rows = [
+            LoggedSignal(today, r.ticker, r.label, r.score, r.price, profile.label)
+            for r in self.recommendations(profile)
+            if r.price and r.price > 0
+        ]
+        return self.signals.add_day(today, rows)
 
     # --- Alertas ----------------------------------------------------------------------
 
@@ -139,6 +160,7 @@ class Engine:
             with self._lock:
                 self.snapshot = snap
                 self._recs.clear()
+            self.log_signals()
         except Exception as e:  # el hilo no debe morir en silencio: se informa a la UI
             self.build.error = f"No se pudo actualizar: {e}"
         finally:

@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { api, invalidate, useApi } from "../api";
-import { ErrorBox, Loading, Stamp } from "../components/ui";
+import { ErrorBox, LabelPill, Loading, Stamp } from "../components/ui";
 import { fmtDate, fmtNum, fmtPct } from "../format";
-import type { BacktestResult, BacktestState } from "../types";
+import type { BacktestResult, BacktestState, SignalTrack } from "../types";
 
 const W = 760;
 const H = 300;
@@ -121,6 +121,51 @@ function Results({ res }: { res: BacktestResult }) {
   );
 }
 
+function SignalTracking() {
+  const { data, error, reload } = useApi<SignalTrack>("/api/signals/track");
+  return (
+    <section className="card stack">
+      <h2>Seguimiento real de las señales</h2>
+      <p className="small muted" style={{ lineHeight: 1.55 }}>
+        La app guarda cada día la señal de cada valor. Pasado el tiempo, compara cómo han rendido los marcados como Comprar, Vigilar y Evitar. Es la única prueba honesta del modelo completo, porque usa datos de entonces y no de hoy. Hace falta paciencia: los primeros resultados llegan a los 30 días.
+      </p>
+      {error && <ErrorBox error={error} onRetry={reload} />}
+      {!data && !error && <Loading height={80} />}
+      {data && (
+        <>
+          <p className="small">
+            {data.days_logged === 0
+              ? "Todavía no hay señales guardadas: se empiezan a guardar cuando haces el test de perfil y hay datos descargados."
+              : `Días registrados: ${data.days_logged}, desde el ${fmtDate(data.first_date)}.`}
+          </p>
+          {data.days_logged > 0 && data.horizons.length === 0 && <p className="small muted">Aún no ha pasado tiempo suficiente para medir (mínimo 30 días).</p>}
+          {data.horizons.map((h) => (
+            <div key={h.days} className="stack tight">
+              <h3>A {h.days} días (desde el {fmtDate(h.from_date)}) · media de todos: {fmtPct(h.universe_mean, 1, true)}</h3>
+              <div className="table-wrap">
+                <table className="data">
+                  <thead><tr><th>Señal de entonces</th><th>Valores</th><th>Rentabilidad media</th><th>Superaron a la media</th></tr></thead>
+                  <tbody>
+                    {h.groups.map((g) => (
+                      <tr key={g.label}>
+                        <td><LabelPill label={g.label} /></td>
+                        <td>{g.count}</td>
+                        <td>{g.mean_return == null ? "n/d" : fmtPct(g.mean_return, 1, true)}{g.count > 0 && !g.reliable ? " (pocos valores)" : ""}</td>
+                        <td>{g.hit_rate == null ? "n/d" : fmtPct(g.hit_rate, 0)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+          <p className="tiny muted">Rentabilidad de precio, sin dividendos y en la moneda de cada valor. Con pocos días o pocos valores, los resultados no son concluyentes. {data.as_of && <Stamp source={data.source} at={data.as_of} prefix="Precios actuales:" />}</p>
+        </>
+      )}
+    </section>
+  );
+}
+
 export function Metodologia() {
   const bt = useApi<BacktestState>("/api/backtest");
   const docs = useApi<Record<string, string>>("/api/methodology");
@@ -168,6 +213,8 @@ export function Metodologia() {
       {bt.data?.result && bt.data.result.failed.length > 0 && (
         <p className="tiny muted">Sin histórico suficiente y excluidos: {bt.data.result.failed.join(", ")}.</p>
       )}
+
+      <SignalTracking />
 
       <section className="card stack">
         <h2>Reglas del modelo</h2>

@@ -272,3 +272,12 @@ def test_watchlist_flow(qclient):
     assert c.get("/api/watchlist").json()[0]["label"] in ("buy", "watch", "avoid")
     assert c.delete("/api/watchlist/E1.MC").json() == {"removed": True}
     assert c.get("/api/watchlist").json() == []
+
+
+def test_signal_log_and_track(qclient):
+    c = qclient
+    assert c.get("/api/signals/track").json()["days_logged"] == 0  # sin perfil no se registra
+    c.put("/api/profile", json=ANSWERS)
+    body = c.get("/api/signals/track").json()
+    assert body["days_logged"] == 1 and body["horizons"] == []  # aún no han pasado 30 días
+    assert c.get("/api/signals/track").json()["days_logged"] == 1  # una foto por día

@@ -294,3 +294,11 @@ export type WatchItem = {
   quote: { price: number; change_pct: number | null; currency: string | null; as_of: string; source: string; delay_minutes: number | null; stale: boolean } | null;
   label: Label | null; score: number | null;
 };
+
+export type SignalTrack = {
+  first_date: string | null;
+  days_logged: number;
+  horizons: { days: number; from_date: string; universe_mean: number | null; groups: { label: Label; count: number; mean_return: number | null; hit_rate: number | null; reliable: boolean }[] }[];
+  as_of: string | null;
+  source: string;
+};

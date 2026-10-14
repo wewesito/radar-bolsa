@@ -65,6 +65,18 @@ MIGRATIONS: list[str] = [
         updated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%SZ', 'now'))
     );
     """,
+    # v5: registro diario de las señales del modelo (para medir después si acertaron)
+    """
+    CREATE TABLE signal_log (
+        logged_on TEXT NOT NULL,            -- AAAA-MM-DD (UTC)
+        ticker    TEXT NOT NULL,
+        label     TEXT NOT NULL CHECK (label IN ('buy', 'watch', 'avoid')),
+        score     REAL,
+        price     REAL NOT NULL CHECK (price > 0),
+        profile   TEXT NOT NULL,
+        PRIMARY KEY (logged_on, ticker)
+    );
+    """,
 ]
 
 
