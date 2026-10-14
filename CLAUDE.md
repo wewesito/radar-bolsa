@@ -19,7 +19,6 @@ No ejecuta operaciones ni se conecta a ningún bróker.
 - **Empaquetado:** PyInstaller (motor, formato carpeta, sin pyarrow) + `tauri build` → `.app` y `.dmg` (firma ad hoc, sin notarizar).
 - **Tests:** pytest (motor) y vitest (interfaz). Lint/format: ruff.
 - Node y Rust están instalados en la carpeta del usuario (`~/.local/node`, `~/.cargo`): `export PATH="$HOME/.local/node/bin:$HOME/.cargo/bin:$PATH"`.
-- Versión anterior en Streamlit (`app/`): sigue funcionando hasta la fase 4; no se le añaden funcionalidades.
 
 ## Estructura
 ```
@@ -40,12 +39,13 @@ src/radar/
   scoring/           # score.py (puntuación 0–100) y screen.py
   fundamentals/      # catálogo de métricas (MetricDef) y comparación sectorial
   indicators/        # technical.py, risk.py, performance.py (plazos, dividendos, ROIC), summary.py
-  education/ portfolio/ alerts/ news/ db/
+  backtest/          # engine.py (puro) y service.py/data.py (E/S): backtest de la parte de precio
+  portfolio/         # calc.py (FIFO, puro), service.py (valoración), model.py (cartera de ejemplo)
+  education/ alerts/ news/ db/   # guides.py = «Cómo invertir»; alerts: reglas + comprobación cada 5 min
 desktop/
   src/               # React: App.tsx, api.ts (conexión con el motor), format.ts, pages/, components/
   src-tauri/         # Rust: lanza el motor (puerto libre + token), lo cierra al salir; iconos; config
   scripts/           # build_engine.sh (PyInstaller), build_app.sh (todo), make_icon.py
-app/                 # Streamlit (versión anterior)
 docs/INSTALACION.md  # guía de instalación para el usuario
 tests/               # pytest sin red
 data/                # radar.db y cache.db en desarrollo (ignorado en git: la regla es /data/)

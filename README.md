@@ -4,7 +4,7 @@
 
 App de escritorio para macOS que analiza acciones y ETFs de España, Europa y EE. UU. y propone en qué invertir según tu perfil. Cada recomendación explica por qué: su puntuación, 3 razones a favor, 3 riesgos, el nivel de riesgo y un rango de precio de entrada. Todo dato muestra su fuente y su fecha.
 
-## Funcionalidades (fase 1)
+## Funcionalidades
 
 | Sección | Qué hace |
 |---|---|
@@ -13,12 +13,14 @@ App de escritorio para macOS que analiza acciones y ETFs de España, Europa y EE
 | **Detalle** | Gráfico de precio, las condiciones que cumple o no para la señal, 3 razones y 3 riesgos en lenguaje sencillo, rango de entrada con sus cálculos, nivel de riesgo, desglose de la puntuación y «Cómo comprar esto». |
 | **España** | IBEX 35 y Mercado Continuo (unas 108 empresas): Top 10 combinado y rankings ordenables por rentabilidad en bolsa (año, 1, 3 y 5 años, con y sin dividendos), negocio (ROE, ROIC, márgenes, crecimiento), dividendo (rentabilidad, años seguidos, payout, sostenibilidad) y valoración (PER y P/VC frente al sector). Con filtro por sector. |
 | **Inicio** | Índices (IBEX 35, Euro Stoxx 50, S&P 500, EUR/USD), tus mejores oportunidades y el estado de los datos. |
-| **Aprender** | Glosario de todas las métricas, con buscador. |
+| **Mi cartera** | Cartera de **operaciones ficticias**: valoración en euros con FIFO, evolución frente a un índice («cartera sombra»), señal del modelo de cada posición y diversificación por sector y país. |
+| **Alertas** | Avisos de precio, variación diaria, RSI o cruce de medias, con notificación de macOS mientras la app está abierta. |
+| **Cómo invertir** | Guías: elegir bróker en España, tipos de órdenes, aportaciones periódicas, fondo de emergencia y fiscalidad, con calculadoras. |
+| **Metodología** | Reglas del modelo y backtest de la parte de precio (con sus límites: sin fundamentales históricos y con sesgo de supervivencia). |
+| **Aprender** | Glosario de todas las métricas, conceptos básicos y calculadoras (interés compuesto e impuestos del ahorro). |
 | **Buscador** | Por nombre o ticker, sin tildes («telefonica» encuentra Telefónica). Si el valor no está en el universo, se busca en Yahoo y se puntúa al momento. |
 
 Cada métrica tiene un icono **?** con una explicación sencilla. Modo claro y oscuro, números en formato español (1.234,56 €) y horas de Madrid con su zona.
-
-**Próximas fases:** cartera de ejemplo por perfil, metodología y backtest frente al IBEX 35 y el S&P 500 (fase 2); guías de «Cómo invertir» (fase 3); cartera, alertas con notificaciones de escritorio y sección Aprender completa (fase 4).
 
 ## Instalación
 
@@ -81,7 +83,7 @@ Todas las reglas están en el código con sus constantes (`src/radar/recommend/e
   - A las empresas pequeñas del Continuo les faltan a veces fundamentales, y la app muestra «n/d».
   - A Yahoo le falta la comisión (TER) de algunos ETFs, y la app remite a su KID.
   - El historial de dividendos empieza como pronto en 2000.
-  - Los fundamentales son la foto actual: no hay series históricas fiables en fuentes gratuitas, y el backtest de la fase 2 lo tendrá en cuenta.
+  - Los fundamentales son la foto actual: no hay series históricas fiables en fuentes gratuitas, por eso el backtest solo prueba la parte de precio.
 
 ## Estructura
 
@@ -102,7 +104,6 @@ desktop/          app de escritorio
   src/            interfaz React + TypeScript
   src-tauri/      ventana nativa (Rust) que arranca el motor
   scripts/        empaquetado (motor con PyInstaller, app con Tauri), icono
-app/              versión anterior en Streamlit (se retira en la fase 4)
 docs/             guía de instalación
 tests/            pytest sin red
 ```
@@ -125,7 +126,5 @@ ruff check . && ruff format .
 ```
 
 Tras cambiar código en `src/radar`, reinicia el motor (o `tauri dev`).
-
-La versión anterior en Streamlit sigue funcionando mientras se migra: `streamlit run app/Home.py`.
 
 Las convenciones del proyecto están en [CLAUDE.md](CLAUDE.md).

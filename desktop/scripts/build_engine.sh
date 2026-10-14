@@ -15,7 +15,7 @@ pyinstaller --noconfirm --clean --log-level WARN \
   --collect-submodules uvicorn \
   --collect-submodules radar \
   --hidden-import keyring.backends.macOS \
-  --exclude-module streamlit --exclude-module plotly --exclude-module altair \
+  --exclude-module altair \
   --exclude-module pydeck --exclude-module matplotlib --exclude-module tkinter \
   --exclude-module IPython --exclude-module pytest --exclude-module pyarrow \
   src/radar/api/__main__.py
