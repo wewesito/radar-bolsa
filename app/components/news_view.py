@@ -1,5 +1,7 @@
 """Sección de noticias con sentimiento por titular."""
 
+import re
+
 import streamlit as st
 
 from components.common import market_data, show_error
@@ -10,6 +12,12 @@ from radar.news.sentiment import analyze
 from radar.news.sources import get_news, search_name
 
 ICON = {"positivo": "▲", "negativo": "▼", "neutral": "●"}
+_MD_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+\-.!|<>~$])")
+
+
+def md_escape(text: str) -> str:
+    """Escapa los caracteres con significado en Markdown de un texto externo."""
+    return _MD_SPECIAL.sub(r"\\\1", text)
 
 
 def render_news(ticker: str, q: Quote) -> None:
@@ -39,12 +47,11 @@ def render_news(ticker: str, q: Quote) -> None:
 
     for item, s in scored:
         when = fmt_dt(item.published) if item.published else "sin fecha"
-        st.markdown(f"{ICON[s.label]} [{item.title}]({item.url})  \n"
-                    f"<small>{item.publisher} · {when}</small>", unsafe_allow_html=True)  # fmt: skip
+        # Titulares de terceros: sin HTML y con Markdown escapado (un '[' rompería el enlace)
+        st.markdown(f"{ICON[s.label]} [{md_escape(item.title)}]({item.url})")
         words = [f"+{w}" for w in s.positives] + [f"−{w}" for w in s.negatives]
-        if words:
-            st.caption(f"Sentimiento {s.label} ({s.score:+.2f}) · palabras detectadas: "
-                       + ", ".join(words))  # fmt: skip
+        detail = f" · sentimiento {s.label} ({s.score:+.2f}): {', '.join(words)}" if words else ""
+        st.caption(f"{md_escape(item.publisher)} · {when}{detail}")
 
     with st.expander("Cómo se calcula el sentimiento y sus limitaciones"):
         st.markdown(

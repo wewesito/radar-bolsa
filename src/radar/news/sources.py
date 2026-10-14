@@ -24,7 +24,7 @@ FINANCE_TERMS = {
     "en": "(stock OR shares OR earnings OR dividend)",
 }
 TIMEOUT = 10
-CACHE_VERSION = "v1"
+CACHE_VERSION = "v2"  # v2: búsqueda con términos financieros
 
 # Nombre con el que la prensa llama a las empresas del IBEX (el legal no sirve para buscar)
 COMMON_NAMES = {

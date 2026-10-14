@@ -42,7 +42,8 @@ NEGATIVE = {
     "baja", "bajan", "bajada*", "recort*", "rebaj*", "multa*", "sancion*", "investiga*",
     "quiebra", "concurso", "crisis", "despido*", "ere", "huelga*",
     "retras*", "peor*", "minimo*", "debil*", "incertidumbre", "preocup*", "alerta*", "riesgo*",
-    "advierte", "advertencia*", "rebaja", "deficit", "endeud*", "fraude", "escandalo*", "dimision*", "frena*",
+    "advierte", "advertencia*", "rebaja", "deficit", "endeud*", "fraude", "escandalo*",
+    "dimision*", "frena*",
     "lastr*", "castig*", "suspend*", "aranceles", "arancel", "deterior*", "sufre",
     "empeor*", "desconfianza", "pinchazo", "tension*", "volatil*",
     # inglés
