@@ -505,9 +505,10 @@ ENTRIES: list[Entry] = [
         "Herramientas de la app",
         "Una etiqueta que resume, con reglas fijas, la puntuación, la valoración y el riesgo "
         "de un valor frente a tu perfil.",
-        "Comprar: puntuación ≥ 65, precio dentro o por debajo del rango de entrada y riesgo "
-        "dentro de tu tolerancia. Evitar: puntuación < 40 o riesgo dos niveles por encima "
-        "de tu tolerancia. Vigilar: el resto.",
+        "Comprar: puntuación ≥ 65, precio dentro o por debajo del rango de entrada, riesgo "
+        "dentro de tu tolerancia, beneficio positivo y al menos 200 millones de capitalización. "
+        "Evitar: puntuación < 40 o riesgo dos "
+        "niveles por encima de tu tolerancia. Vigilar: el resto.",
         "Úsala como punto de partida para estudiar el valor, no como orden.",
         "La genera un modelo propio con datos públicos y pesos subjetivos. No garantiza "
         "rentabilidad ni sustituye a un asesor financiero.",
@@ -518,7 +519,8 @@ ENTRIES: list[Entry] = [
         "Herramientas de la app",
         "Cuánto oscila el precio y cuánto ha llegado a caer en el último año.",
         "Bajo: volatilidad < 20 % y caída máxima menor del 20 %. Medio: volatilidad < 32 % y "
-        "caída menor del 35 %. Alto: el resto.",
+        "caída menor del 35 %. Alto: el resto. Las empresas pequeñas suben de nivel: menos de "
+        "1.000 millones de capitalización, al menos medio; menos de 200 millones, alto.",
         "Un riesgo bajo significa sustos más pequeños, no ausencia de pérdidas.",
         "Mira el pasado reciente. Una sola acción tiene además riesgo de empresa (resultados, "
         "litigios) que un ETF diversificado reparte.",

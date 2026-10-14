@@ -32,7 +32,7 @@ def stock_row(k: float, ticker: str, **over) -> dict:
         "price_currency": "EUR",
     }
     row.update({key: float(k) for key in INPUTS})
-    row.update({"vol_1y": 0.15, "mdd_1y": -0.10})  # riesgo bajo por defecto
+    row.update({"vol_1y": 0.15, "mdd_1y": -0.10, "profit_margin": 0.1})  # riesgo bajo
     row.update(over)
     return row
 
@@ -47,7 +47,7 @@ def company(best: bool, **over) -> dict:
     for key, better in INPUTS.items():
         high = 100.0 if best else -100.0
         row[key] = high if better == "higher" else -high
-    row.update({"vol_1y": 0.15, "mdd_1y": -0.10})
+    row.update({"vol_1y": 0.15, "mdd_1y": -0.10, "profit_margin": 0.1})
     row.update(over)
     return row
 
@@ -65,6 +65,24 @@ def company(best: bool, **over) -> dict:
 )
 def test_risk_level(vol, mdd, level):
     assert risk_level(vol, mdd) == level
+
+
+@pytest.mark.parametrize(("cap", "level"), [(5e10, 0), (5e8, 1), (1e8, 2), (None, 0)])
+def test_small_companies_have_more_risk(cap, level):
+    assert risk_level(0.10, -0.05, cap) == level
+
+
+def test_micro_cap_is_never_buy_even_for_dynamic_profile():
+    rec = recommend(company(best=True, market_cap=5e7), universe(), DYNAMIC)
+    assert rec.risk_level == 2 and rec.label == "watch"
+    assert "pequeña" in rec.summary
+
+
+def test_loss_making_company_is_never_buy():
+    rec = recommend(company(best=True, profit_margin=-0.05), universe(), MODERATE)
+    assert rec.label == "watch"
+    assert not next(c for c in rec.checks if "beneficio" in c.rule).passed
+    assert "pérdidas" in rec.cons[0].text
 
 
 def peers_df(n: int = 6) -> pd.DataFrame:

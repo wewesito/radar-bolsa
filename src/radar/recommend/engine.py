@@ -4,7 +4,9 @@ Reglas fijas y visibles en la app (pestaña Metodología y detalle de cada valor
 
 Acciones
 - Comprar: puntuación ≥ 65, precio dentro o por debajo del rango de entrada (si no hay
-  rango fiable, componente de valoración ≥ 50) y riesgo dentro de tu tolerancia.
+  rango fiable, componente de valoración ≥ 50), riesgo dentro de tu tolerancia,
+  beneficio positivo (una empresa en pérdidas nunca sale como "Comprar") y al menos 200
+  millones de capitalización (por debajo, comprar y vender sin mover el precio es difícil).
 - Evitar: puntuación < 40, o riesgo dos niveles por encima de tu tolerancia.
 - Vigilar: el resto.
 
@@ -17,7 +19,9 @@ ETFs (se comparan con los demás ETFs de referencia en coste, tamaño, riesgo y 
 - Vigilar: el resto.
 
 Nivel de riesgo (último año): bajo si volatilidad < 20 % y caída máxima menor del 20 %;
-medio si volatilidad < 32 % y caída menor del 35 %; alto en otro caso.
+medio si volatilidad < 32 % y caída menor del 35 %; alto en otro caso. En acciones, el
+tamaño lo sube: capitalización < 1.000 millones → al menos medio; < 200 millones → alto
+(valores pequeños y poco líquidos pueden moverse mucho de golpe).
 
 Rango de entrada (acciones): precio que tendría con el PER, el precio/valor contable y la
 rentabilidad FCF medianos de sus comparables. Va de la estimación más baja a la mediana.
@@ -54,6 +58,8 @@ AVOID_SCORE = 40
 MIN_VALUATION_WITHOUT_RANGE = 50
 LOW_VOL, MID_VOL = 0.20, 0.32
 LOW_MDD, MID_MDD = -0.20, -0.35
+SMALL_CAP = 1e9  # en la moneda de las cuentas (≈ euros o dólares)
+MICRO_CAP = 2e8
 RANGE_MAX_SPREAD = 2.5
 MAX_REASONS = 3
 
@@ -155,18 +161,36 @@ def _num(v) -> float | None:
     return None if v is None or pd.isna(v) else float(v)
 
 
-def risk_level(vol: float | None, mdd: float | None) -> int | None:
+def size_floor(market_cap: float | None) -> int:
+    """Riesgo mínimo por tamaño: 2 si < 200 millones, 1 si < 1.000 millones, si no 0."""
+    if market_cap is None:
+        return 0
+    if market_cap < MICRO_CAP:
+        return 2
+    if market_cap < SMALL_CAP:
+        return 1
+    return 0
+
+
+def risk_level(vol: float | None, mdd: float | None, market_cap: float | None = None) -> int | None:
     """0 bajo, 1 medio, 2 alto (ver docstring del módulo). None si no hay volatilidad."""
     if vol is None:
         return None
     if vol < LOW_VOL and (mdd is None or mdd > LOW_MDD):
-        return 0
-    if vol < MID_VOL and (mdd is None or mdd > MID_MDD):
-        return 1
-    return 2
+        level = 0
+    elif vol < MID_VOL and (mdd is None or mdd > MID_MDD):
+        level = 1
+    else:
+        level = 2
+    return max(level, size_floor(market_cap))
 
 
-def risk_detail(vol: float | None, mdd: float | None, beta: float | None = None) -> str:
+def risk_detail(
+    vol: float | None,
+    mdd: float | None,
+    beta: float | None = None,
+    market_cap: float | None = None,
+) -> str:
     if vol is None:
         return "Sin histórico suficiente para medir el riesgo: se trata como medio."
     parts = [f"volatilidad anual del {fmt_metric_value('pct', vol)}"]
@@ -174,7 +198,23 @@ def risk_detail(vol: float | None, mdd: float | None, beta: float | None = None)
         parts.append(f"peor caída en un año del {fmt_metric_value('pct', mdd)}")
     if beta is not None:
         parts.append(f"beta de {fmt_metric_value('ratio', beta)}")
-    return "En el último año: " + ", ".join(parts) + "."
+    text = "En el último año: " + ", ".join(parts) + "."
+    floor = size_floor(market_cap)
+    if floor:
+        size = "muy pequeña (menos de 200 millones)" if floor == 2 else "pequeña (menos de "
+        size += "" if floor == 2 else "1.000 millones)"
+        text += f" Además es una empresa {size}: puede moverse mucho de golpe y es menos líquida."
+    return text
+
+
+def is_profitable(row: dict) -> bool | None:
+    """True si gana dinero (margen neto o PER positivos), False si pierde, None sin datos."""
+    margin, pe = _num(row.get("profit_margin")), _num(row.get("pe_trailing"))
+    if margin is not None:
+        return margin > 0
+    if pe is not None:
+        return pe > 0
+    return None
 
 
 _FAIR_METHODS: list[tuple[str, str, str]] = [
@@ -291,7 +331,8 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
     currency = row.get("price_currency") or row.get("currency")
     res = score_company(row, stocks, weights=profile.weights, currency=currency)
     vol, mdd = _num(row.get("vol_1y")), _num(row.get("mdd_1y"))
-    risk = risk_level(vol, mdd)
+    cap = _num(row.get("market_cap"))
+    risk = risk_level(vol, mdd, cap)
     r = 1 if risk is None else risk
     others = stocks[stocks["ticker"] != row.get("ticker")]
     peers, group = select_peers(others, row.get("sector"), row.get("region", ""))
@@ -335,8 +376,30 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
             f"{RISK_ES[profile.max_risk]}",
         )
     )
+    profitable = is_profitable(row)
+    checks.append(
+        RuleCheck(
+            "Gana dinero (beneficio neto positivo)",
+            bool(profitable),
+            {True: "Sí", False: "No: está en pérdidas", None: "Sin dato de beneficio"}[profitable],
+        )
+    )
+
+    big_enough = cap is None or cap >= MICRO_CAP
+    checks.append(
+        RuleCheck(
+            "Tamaño suficiente (200 millones o más de capitalización)",
+            big_enough,
+            f"Capitalización {fmt_metric_value('money', cap, row.get('currency'))}"
+            if cap is not None
+            else "Sin dato: no se aplica",
+        )
+    )
 
     pros, cons = pick_reasons(res.components, currency)
+    if profitable is False:
+        cons.insert(0, Reason("Está en pérdidas: no gana dinero con su negocio actual."))
+        cons = cons[:MAX_REASONS]
     extra_cons = []
     if currency and currency != "EUR":
         extra_cons.append(texts.currency_risk(currency))
@@ -366,6 +429,10 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
             summary = "Buenos números, pero hoy cotiza por encima de su rango razonable."
         elif score >= BUY_SCORE and not risk_ok:
             summary = "Buenos números, pero con más riesgo del que toleras."
+        elif score >= BUY_SCORE and not profitable:
+            summary = "Buenas métricas relativas, pero ahora mismo no gana dinero."
+        elif score >= BUY_SCORE and not big_enough:
+            summary = "Buenas métricas, pero es una empresa muy pequeña y poco líquida."
         else:
             summary = "Métricas en línea con sus comparables: ni destaca ni preocupa."
 
@@ -391,7 +458,7 @@ def recommend_stock(row: dict, stocks: pd.DataFrame, profile: InvestorProfile) -
         components=res.components,
         entry=entry,
         entry_note=entry.note if entry else "Sin precio disponible: no se calcula el rango.",
-        risk_detail=risk_detail(vol, mdd, _num(row.get("beta"))),
+        risk_detail=risk_detail(vol, mdd, _num(row.get("beta")), cap),
         sector=row.get("sector"),
         country=row.get("country"),
         spain_index=row.get("spain_index"),
