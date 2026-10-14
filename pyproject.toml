@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "radar-bolsa"
-version = "0.1.0"
+version = "0.2.0"
 description = "App personal y educativa de seguimiento y análisis bursátil (no es asesoramiento financiero)."
 readme = "README.md"
 requires-python = ">=3.11"
