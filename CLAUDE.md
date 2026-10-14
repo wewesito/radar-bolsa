@@ -30,6 +30,7 @@ src/radar/
     yahoo.py         # proveedor yfinance
     finnhub.py       # proveedor opcional
     cache.py         # caché SQLite con TTL
+    service.py       # proveedor + caché: la única puerta que usa la UI
     markets.py       # sufijos, bolsas, horarios, retrasos, ¿mercado abierto?
   indicators/        # funciones puras: SMA, RSI, MACD, Bollinger, soportes/resistencias, riesgo
   fundamentals/      # métricas y comparación con la media del sector
@@ -40,9 +41,10 @@ src/radar/
   alerts/            # evaluación de reglas de alerta
   education/         # contenido del glosario (datos, no lógica)
 app/
-  Home.py            # punto de entrada de Streamlit
-  pages/             # una página por funcionalidad
-  components/        # widgets reutilizables (badge de fuente/retraso, disclaimer…)
+  Home.py            # punto de entrada: st.navigation con las páginas
+  views/             # una página por funcionalidad (NO llamarla pages/: Streamlit la
+                     # trataría como su sistema antiguo de páginas e ignoraría st.navigation)
+  components/        # widgets reutilizables (servicios, badges de fuente, gráficos…)
 tests/               # espejo de src/radar/
 data/                # radar.db y la caché (ignorado en git)
 ```
@@ -52,6 +54,8 @@ data/                # radar.db y la caché (ignorado en git)
 - Tipado con type hints en todas las funciones públicas y docstrings breves en español.
 - Código (identificadores) en inglés; textos de UI, docstrings y comentarios en español.
 - Errores de datos: excepciones propias (`TickerNotFoundError`, `ProviderUnavailableError`, `RateLimitError`). La UI las muestra como mensajes amables, nunca como trazas.
+- Al cambiar la estructura de un modelo o el parseo de un proveedor, subir `CACHE_VERSION` en `data/service.py`.
+- Yahoo mezcla unidades (márgenes en fracción; dividendYield, debtToEquity y netExpenseRatio en %). Normalizar en `data/yahoo.py`, nunca en la UI.
 - Respetar los límites de las APIs: toda llamada externa pasa por la caché con TTL (cotización ~60 s, histórico diario ~6 h, fundamentales ~24 h). Backoff ante los errores 429.
 - Fechas en UTC internamente; en la UI se muestran en Europe/Madrid indicando la zona.
 - Tests obligatorios para `indicators/` y `scoring/` con datos sintéticos de resultado conocido.
@@ -61,7 +65,7 @@ data/                # radar.db y la caché (ignorado en git)
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-streamlit run app/Home.py
+streamlit run app/Home.py   # reiniciar tras cambiar src/ (Streamlit solo recarga app/)
 pytest
 ruff check . && ruff format .
 ```

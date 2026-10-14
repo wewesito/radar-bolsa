@@ -54,7 +54,24 @@ Se abre en http://localhost:8501. Para añadir empresas a la watchlist, escribe 
 ## Fuentes de datos
 
 - **Yahoo Finance** (librería `yfinance`, no oficial) es la fuente principal. Las bolsas europeas llegan con unos **15 minutos de retraso**, y la app muestra en cada dato su hora y su retraso.
-- Las respuestas se guardan en una caché local (SQLite) para no saturar la API. Si la fuente falla, se muestran los últimos datos guardados, marcados como antiguos.
+- Las respuestas se guardan en una caché local (`data/cache.db`, SQLite) para no saturar la API: las cotizaciones durante 60 s, los históricos diarios 6 h y los fundamentales 24 h. Si la fuente falla, se muestran los últimos datos guardados, marcados como **antiguos**.
+
+### Limitaciones conocidas de los datos
+
+- **Retraso declarado frente a real**: la watchlist muestra el retraso que declara Yahoo y la antigüedad real de la última cotización. No siempre coinciden: algunos ETFs europeos se declaran "tiempo real" y llegan con 15 min de retraso.
+- **Volumen intradía incompleto**: en los rangos 1D y 1S, Yahoo no incluye las subastas ni todas las operaciones. Para comparar volúmenes, usa rangos diarios.
+- **Históricos largos con errores**: algunos valores europeos tienen saltos falsos en los datos antiguos, por ajustes de *split* mal aplicados. La escala logarítmica los hace visibles.
+- **ETFs europeos**: Yahoo publica pocas métricas (a menudo solo la comisión TER).
+- **ADRs**: un ticker sin sufijo, como `SAN`, es el certificado en dólares que cotiza en Nueva York, no la acción de Madrid (`SAN.MC`).
+
+## Estructura
+
+```
+src/radar/   lógica (datos, caché, BD, formato): sin Streamlit y testeable
+app/         interfaz Streamlit (Home.py + views/ + components/)
+tests/       pytest, sin red (proveedores falsos y datos sintéticos)
+data/        radar.db (watchlist) y cache.db; se crean solos (fuera de git)
+```
 
 ## Desarrollo
 
@@ -62,5 +79,7 @@ Se abre en http://localhost:8501. Para añadir empresas a la watchlist, escribe 
 pytest                          # tests
 ruff check . && ruff format .   # lint y formato
 ```
+
+> Streamlit solo recarga automáticamente los archivos de `app/`. Si cambias código en `src/`, reinicia `streamlit run`.
 
 La arquitectura y las convenciones están en [CLAUDE.md](CLAUDE.md).
