@@ -13,6 +13,7 @@ from components.common import (
     watchlist_repo,
 )
 from components.fundamentals_view import render_fundamentals
+from components.score_view import render_score
 from components.technical_view import jumps_warning, render_technical
 from components.universe_panel import universe_panel
 from radar.data.markets import CHART_RANGES, exchange_for, is_valid_format, normalize_ticker
@@ -66,7 +67,7 @@ st.caption(source_line(q.source, q.as_of, delay_label(q), q.stale))
 # --- Secciones ---------------------------------------------------------------
 # Un selector en vez de st.tabs: st.tabs ejecuta el código de TODAS las pestañas en cada
 # interacción (más llamadas a la API); así solo se calcula la sección visible.
-SECTIONS = ["📈 Gráfico", "📊 Fundamentales", "📐 Técnico"]
+SECTIONS = ["📈 Gráfico", "📊 Fundamentales", "📐 Técnico", "🎯 Score"]
 section = st.segmented_control("Sección", SECTIONS, default=SECTIONS[0], key="section")
 section = section or SECTIONS[0]
 
@@ -126,4 +127,5 @@ def section_fundamentals() -> None:
     "📈 Gráfico": section_chart,
     "📊 Fundamentales": section_fundamentals,
     "📐 Técnico": lambda: render_technical(svc, ticker),
+    "🎯 Score": lambda: render_score(svc, ticker, q),
 }[section]()

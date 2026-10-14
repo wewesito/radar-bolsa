@@ -12,6 +12,9 @@ from radar.universe import build_universe, load_universe
 class FakeProvider:
     name = "Fake"
 
+    def get_history(self, ticker, range_key):
+        raise TickerNotFoundError(ticker)  # sin histórico: momentum/riesgo quedan vacíos
+
     def get_fundamentals(self, ticker):
         if ticker == "BAD.MC":
             raise TickerNotFoundError(ticker)

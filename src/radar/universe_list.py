@@ -135,4 +135,12 @@ US_LARGE = [
     "CRM",
 ]
 
-UNIVERSE: list[str] = list(dict.fromkeys(IBEX35 + EUROSTOXX50_EX_ES + US_LARGE))
+# Refuerzo de sectores con pocas empresas (Energía, Materiales, Inmobiliario): sin al
+# menos 5 comparables por sector no se puede calcular una mediana fiable.
+SECTOR_FILL = [
+    "SHEL.L", "BP.L", "GALP.LS", "COP", "SLB", "EOG",
+    "HEI.DE", "SIKA.SW", "AKZA.AS", "FCX", "SHW", "NEM",
+    "VNA.DE", "LI.PA", "O", "SPG", "EQIX", "PSA",
+]  # fmt: skip
+
+UNIVERSE: list[str] = list(dict.fromkeys(IBEX35 + EUROSTOXX50_EX_ES + US_LARGE + SECTOR_FILL))

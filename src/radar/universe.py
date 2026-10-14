@@ -6,6 +6,7 @@ usuario decide cuándo reconstruirla (los fundamentales cambian trimestralmente)
 
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
@@ -15,10 +16,11 @@ from radar.data.cache import Cache
 from radar.data.service import MarketDataService
 from radar.errors import RadarError
 from radar.fundamentals.sector import add_derived, region_for
+from radar.indicators.risk import price_stats
 from radar.models import Fundamentals
 from radar.universe_list import UNIVERSE
 
-SNAPSHOT_KEY = "universe:snapshot:v1"
+SNAPSHOT_KEY = "universe:snapshot:v2"  # v2: + estadísticas de precio
 STALE_AFTER_DAYS = 7
 TEXT_COLUMNS = ["ticker", "name", "sector", "industry", "country", "region"]
 
@@ -47,6 +49,15 @@ def fundamentals_row(f: Fundamentals) -> dict:
     }
 
 
+def company_row(svc: MarketDataService, ticker: str) -> dict:
+    """Fundamentales + estadísticas de precio (2 años diarios) de una empresa."""
+    row = fundamentals_row(svc.get_fundamentals(ticker))
+    # Sin histórico, momentum y riesgo quedan sin dato (el score lo indica).
+    with suppress(RadarError):
+        row.update(price_stats(svc.get_history(ticker, "2A").data["Close"]))
+    return row
+
+
 def build_universe(
     svc: MarketDataService,
     tickers: list[str] = UNIVERSE,
@@ -55,7 +66,7 @@ def build_universe(
     rows, failed = [], []
 
     def one(t: str) -> dict:
-        return fundamentals_row(svc.get_fundamentals(t))
+        return company_row(svc, t)
 
     with ThreadPoolExecutor(max_workers=4) as pool:
         futures = {pool.submit(one, t): t for t in tickers}

@@ -71,3 +71,16 @@ def fmt_age(seconds: float) -> str:
     if seconds < 86400:
         return f"hace {int(seconds // 3600)} h"
     return f"hace {int(seconds // 86400)} d"
+
+
+def fmt_metric_value(kind: str, value: float | None, currency: str | None = None) -> str:
+    """Formatea según el tipo de métrica del catálogo (pct, money, per_share, ratio)."""
+    if value is None or value != value:  # None o NaN
+        return NA
+    if kind == "pct":
+        return fmt_pct(value)
+    if kind == "money":
+        return fmt_big(value, currency)
+    if kind == "per_share":
+        return fmt_price(value, currency)
+    return fmt_number(value)

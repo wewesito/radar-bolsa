@@ -227,7 +227,52 @@ ETF_METRICS: list[MetricDef] = [
     ),
 ]
 
-ALL_METRICS: dict[str, MetricDef] = {m.key: m for m in EQUITY_METRICS + ETF_METRICS}
+# Calculadas a partir del histórico de precios (indicators.risk.price_stats)
+PRICE_METRICS: list[MetricDef] = [
+    MetricDef(
+        "ret_12m",
+        "Rentabilidad 12 meses",
+        "pct",
+        "Momentum",
+        "higher",
+        "Variación del precio en el último año.",
+    ),
+    MetricDef(
+        "ret_6m",
+        "Rentabilidad 6 meses",
+        "pct",
+        "Momentum",
+        "higher",
+        "Variación del precio en los últimos 6 meses.",
+    ),
+    MetricDef(
+        "dist_sma200",
+        "Distancia a la SMA 200",
+        "pct",
+        "Momentum",
+        "higher",
+        "Cuánto está el precio por encima (+) o por debajo (−) de su media de 200 sesiones.",
+    ),
+    MetricDef(
+        "vol_1y",
+        "Volatilidad anual",
+        "pct",
+        "Riesgo",
+        "lower",
+        "Desviación típica de los rendimientos diarios del último año, anualizada. "
+        "Mide cuánto 'se mueve' el precio.",
+    ),
+    MetricDef(
+        "mdd_1y",
+        "Caída máxima 1 año",
+        "pct",
+        "Riesgo",
+        "higher",
+        "Peor caída de máximo a mínimo en el último año (drawdown). Más cerca de 0 = menos caída.",
+    ),
+]
+
+ALL_METRICS: dict[str, MetricDef] = {m.key: m for m in EQUITY_METRICS + ETF_METRICS + PRICE_METRICS}
 
 
 def metrics_for(quote_type: str | None) -> list[MetricDef]:

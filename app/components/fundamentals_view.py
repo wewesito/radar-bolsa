@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 from components.common import source_line
-from radar.formatting import fmt_big, fmt_dt, fmt_number, fmt_pct, fmt_price
+from radar.formatting import fmt_dt, fmt_metric_value
 from radar.fundamentals.metrics import MetricDef, metrics_for
 from radar.fundamentals.sector import (
     MIN_PEERS,
@@ -18,15 +18,7 @@ from radar.universe import UniverseSnapshot, fundamentals_row
 
 
 def fmt_metric(m: MetricDef, value: float | None, currency: str | None) -> str:
-    if value is None or pd.isna(value):
-        return "n/d"
-    if m.kind == "pct":
-        return fmt_pct(value)
-    if m.kind == "money":
-        return fmt_big(value, currency)
-    if m.kind == "per_share":
-        return fmt_price(value, currency)
-    return fmt_number(value)
+    return fmt_metric_value(m.kind, None if value is None or pd.isna(value) else value, currency)
 
 
 def render_fundamentals(f: Fundamentals, snap: UniverseSnapshot | None) -> None:
