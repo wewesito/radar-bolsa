@@ -12,7 +12,7 @@ from radar.data.cache import Cache
 from radar.data.service import MarketDataService
 from radar.db.database import Database
 from radar.errors import TickerNotFoundError
-from radar.models import PriceHistory, SearchResult
+from radar.models import PriceHistory, Quote, SearchResult
 from radar.scoring.score import COMPONENTS
 from radar.universe import UniverseSnapshot
 
@@ -190,3 +190,71 @@ def test_guides_and_calculators(client):
     t = client.get("/api/calc/tax", params={"base": 10000}).json()
     assert round(t["tax"], 2) == 6000 * 0.19 + 4000 * 0.21
     assert client.get("/api/calc/tax", params={"base": -1}).status_code == 422
+
+
+class QuoteProvider(FakeProvider):
+    def get_quote(self, ticker):
+        if ticker == "NOPE":
+            raise TickerNotFoundError(ticker)
+        return Quote(ticker, "Eléctrica", 12.0, 11.0, 1000, "EUR", "MCE", "EQUITY", "REGULAR",
+                     15, T0, "Fake")  # fmt: skip
+
+
+@pytest.fixture
+def qclient(tmp_path):
+    svc = MarketDataService(QuoteProvider(), Cache(tmp_path / "c.db"))
+    engine = Engine(svc, Database(tmp_path / "r.db"))
+    engine.snapshot = snapshot()
+    c = TestClient(create_app(engine, TOKEN))
+    c.headers["X-Radar-Token"] = TOKEN
+    return c
+
+
+def test_portfolio_flow(qclient):
+    c = qclient
+    assert c.get("/api/portfolio").json()["trade_count"] == 0
+    t = {
+        "ticker": "e1.mc",
+        "side": "BUY",
+        "quantity": 10,
+        "price": 10.0,
+        "fee": 1,
+        "date": "2026-09-05",
+    }
+    assert c.post("/api/portfolio/trades", json=t).status_code == 200
+    body = c.get("/api/portfolio").json()
+    pos = body["positions"][0]
+    assert pos["ticker"] == "E1.MC" and pos["name"] == "Eléctrica 1"
+    assert (
+        body["summary"]["market_value_eur"] == 120.0
+        and body["summary"]["unrealized_eur"] == 120 - 101
+    )
+    assert body["by_sector"] and body["effective_positions"] == 1.0
+    assert body["chart"] is None or len(body["chart"]["dates"]) == len(body["chart"]["value"])
+    # no se puede vender lo que no se tiene
+    sell = {**t, "side": "SELL", "quantity": 50}
+    r = c.post("/api/portfolio/trades", json=sell)
+    assert r.status_code == 422 and r.json()["code"] == "invalid"
+    assert c.post("/api/portfolio/trades", json={**t, "date": "2999-01-01"}).status_code == 422
+    assert c.get("/api/portfolio", params={"bench": "XXX"}).status_code == 422
+    tid = c.get("/api/portfolio/trades").json()[0]["id"]
+    assert c.delete(f"/api/portfolio/trades/{tid}").status_code == 200
+    assert c.get("/api/portfolio").json()["trade_count"] == 0
+
+
+def test_alerts_flow(qclient):
+    c = qclient
+    a = {"ticker": "e1.mc", "metric": "price", "op": "above", "threshold": 15}
+    assert c.post("/api/alerts", json=a).status_code == 200
+    assert c.post("/api/alerts", json={**a, "threshold": None}).status_code == 422
+    assert c.post("/api/alerts", json={**a, "ticker": "NOPE"}).status_code == 404
+    assert c.post("/api/alerts/check").json() == {
+        "fired": []
+    }  # primera evaluación: solo fija estado
+    body = c.get("/api/alerts").json()
+    assert body["alerts"][0]["text"].startswith("E1.MC")
+    assert body["alerts"][0]["last_value"] == 12.0
+    aid = body["alerts"][0]["id"]
+    assert c.put(f"/api/alerts/{aid}/active", params={"active": False}).status_code == 200
+    assert c.delete(f"/api/alerts/{aid}").status_code == 200
+    assert c.get("/api/alerts").json()["alerts"] == []

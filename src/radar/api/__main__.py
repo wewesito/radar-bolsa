@@ -51,6 +51,7 @@ def main(argv: list[str] | None = None) -> None:
 
     engine = Engine(default_service(), Database(config.DB_PATH))
     app = create_app(engine, args.token)
+    engine.start_alert_loop()
     if args.watch_parent:
         _watch_parent()
     print(f"{READY_PREFIX} port={port}", flush=True)

@@ -3,16 +3,21 @@
 La API (app.py) solo traduce peticiones HTTP a llamadas a este objeto.
 """
 
+import logging
 import threading
+import time
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 
 import pandas as pd
 
+from radar.alerts.checker import check_all, notify_macos
 from radar.backtest.service import BacktestRunner
 from radar.data.service import MarketDataService
+from radar.db.alerts import AlertsRepo
 from radar.db.database import Database
 from radar.db.settings import SettingsRepo
+from radar.db.trades import TradesRepo
 from radar.profile.investor import (
     Answers,
     InvestorProfile,
@@ -22,6 +27,8 @@ from radar.profile.investor import (
 from radar.recommend.engine import Recommendation, recommend, recommend_all
 from radar.universe import UniverseSnapshot, build_universe, company_row, load_universe
 
+log = logging.getLogger(__name__)
+ALERT_CHECK_SECONDS = 300  # las cotizaciones se cachean 60 s: no tiene sentido ir más rápido
 PROFILE_KEY = "profile"
 # Sin test hecho todavía (p. ej. la sección España): se usa un perfil moderado de referencia
 DEFAULT_ANSWERS = Answers(horizon=2, reaction=2, amount=2, objective="growth", experience=2)
@@ -50,11 +57,37 @@ class Engine:
         self.svc = svc
         self.db = db
         self.settings = SettingsRepo(db)
+        self.trades = TradesRepo(db)
+        self.alerts = AlertsRepo(db)
         self.snapshot: UniverseSnapshot | None = load_universe(svc.cache)
         self.build = BuildStatus()
         self.backtest = BacktestRunner(svc)
         self._lock = threading.Lock()
         self._recs: dict[tuple, list[Recommendation]] = {}
+
+    # --- Alertas ----------------------------------------------------------------------
+
+    def check_alerts(self, notify: bool = False) -> list[str]:
+        """Evalúa las alertas activas. Con `notify`, avisa con una notificación de macOS."""
+        messages = check_all(self.svc, self.alerts)
+        if notify:
+            for m in messages:
+                notify_macos(m)
+        return messages
+
+    def start_alert_loop(self, interval_seconds: int = ALERT_CHECK_SECONDS) -> None:
+        """Comprueba las alertas cada pocos minutos mientras la app esté abierta."""
+
+        def loop() -> None:
+            while True:
+                time.sleep(interval_seconds)
+                try:
+                    if self.alerts.list(only_active=True):
+                        self.check_alerts(notify=True)
+                except Exception:  # noqa: BLE001 - un fallo de red no debe parar el bucle
+                    log.warning("Fallo al comprobar las alertas", exc_info=True)
+
+        threading.Thread(target=loop, daemon=True).start()
 
     # --- Perfil -----------------------------------------------------------------------
 

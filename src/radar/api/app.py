@@ -8,15 +8,17 @@ ISO en UTC: el formato español y la zona de Madrid se aplican en la interfaz.
 import math
 import unicodedata
 from dataclasses import asdict, is_dataclass
-from datetime import datetime
-from typing import Any
+from datetime import UTC, datetime
+from datetime import date as datetime_date
+from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from radar import __version__, recommend, scoring
+from radar.alerts.rules import METRIC_LABELS, Alert, describe
 from radar.api.state import Engine, NoProfileError, NoUniverseError
 from radar.backtest import engine as backtest_engine
 from radar.data.markets import exchange_for
@@ -26,6 +28,9 @@ from radar.education.glossary import ENTRIES
 from radar.education.guides import GUIDES
 from radar.errors import ProviderUnavailableError, RadarError, TickerNotFoundError
 from radar.etfs import BY_TICKER as ETF_INFO
+from radar.portfolio import service as portfolio_service
+from radar.portfolio.calc import PortfolioError
+from radar.portfolio.market import BENCHMARKS
 from radar.profile import investor
 from radar.profile.investor import PROFILE_DESCRIPTIONS, QUESTIONS
 from radar.recommend.engine import LABEL_ES, Recommendation
@@ -112,6 +117,23 @@ class ProfileIn(BaseModel):
     experience: int
 
 
+class TradeIn(BaseModel):
+    ticker: str = Field(min_length=1, max_length=20)
+    side: Literal["BUY", "SELL"]
+    quantity: float = Field(gt=0)
+    price: float | None = Field(default=None, gt=0)
+    fee: float = Field(default=0, ge=0)
+    date: datetime_date
+    note: str | None = Field(default=None, max_length=300)
+
+
+class AlertIn(BaseModel):
+    ticker: str = Field(min_length=1, max_length=20)
+    metric: Literal["price", "change_pct", "rsi", "sma50", "sma200"]
+    op: Literal["above", "below"]
+    threshold: float | None = None
+
+
 class SecretIn(BaseModel):
     name: str
     value: str
@@ -157,6 +179,10 @@ def create_app(engine: Engine, token: str) -> FastAPI:
             {"detail": "Aún no has hecho el test de perfil.", "code": "no_profile"},
             status_code=409,
         )
+
+    @app.exception_handler(PortfolioError)
+    async def portfolio_error(_: Request, e: PortfolioError) -> JSONResponse:
+        return JSONResponse({"detail": str(e), "code": "invalid"}, status_code=422)
 
     @app.get("/health")
     def health() -> dict:
@@ -372,6 +398,99 @@ def create_app(engine: Engine, token: str) -> FastAPI:
                 if s.ticker not in known and s.quote_type in ("EQUITY", "ETF"):
                     results.append({**asdict(s), "in_universe": False})
         return clean(results[:10])
+
+    # --- Cartera simulada -------------------------------------------------------------
+
+    def holding_info(ticker: str) -> dict:
+        row = engine.universe_row(ticker) if engine.snapshot is not None else None
+        if row:
+            return {
+                "name": row.get("name"),
+                "sector": row.get("sector"),
+                "country": row.get("country"),
+            }
+        try:
+            f = engine.svc.get_fundamentals(ticker)
+            return {"name": f.name, "sector": f.sector, "country": f.country}
+        except RadarError:
+            return {}
+
+    @api.get("/portfolio")
+    def portfolio(bench: str = "EUNL.DE") -> dict:
+        if bench not in BENCHMARKS.values():
+            raise HTTPException(422, "Índice de referencia no válido.")
+        trades = engine.trades.list()
+        view = portfolio_service.portfolio_view(engine.svc, trades, bench, holding_info)
+        labels: dict[str, str] = {}
+        if engine.answers() is not None and engine.snapshot is not None:
+            recs = {r.ticker: r for r in engine.recommendations(engine.profile())}
+            labels = {t: LABEL_ES[r.label] for t, r in recs.items()}
+        for p in view["positions"]:
+            p["label"] = labels.get(p["ticker"])
+        view["benchmarks"] = [{"ticker": t, "name": n} for n, t in BENCHMARKS.items()]
+        view["trade_count"] = len(trades)
+        return clean(view)
+
+    @api.get("/portfolio/trades")
+    def trades_list() -> list[dict]:
+        return clean([asdict(t) for t in reversed(engine.trades.list())])
+
+    @api.post("/portfolio/trades")
+    def trades_add(body: TradeIn) -> dict:
+        if body.date > datetime.now(UTC).date():
+            raise HTTPException(422, "La fecha no puede ser futura.")
+        ticker = body.ticker.strip().upper()
+        trade_id = portfolio_service.add_trade(
+            engine.svc, engine.trades, ticker, body.side, body.quantity, body.price,
+            body.fee, body.date, body.note,
+        )  # fmt: skip
+        return {"id": trade_id}
+
+    @api.delete("/portfolio/trades/{trade_id}")
+    def trades_delete(trade_id: int) -> dict:
+        engine.trades.delete(trade_id)
+        return {"ok": True}
+
+    # --- Alertas ----------------------------------------------------------------------
+
+    @api.get("/alerts")
+    def alerts_list() -> dict:
+        last = engine.alerts.last_values()
+        items = []
+        for a in engine.alerts.list():
+            value, checked = last.get(a.id, (None, None))
+            items.append(
+                {**asdict(a), "text": describe(a), "last_value": value, "last_checked_at": checked}
+            )
+        events = [asdict(e) for e in engine.alerts.events()]
+        return clean({"alerts": items, "events": events, "metrics": METRIC_LABELS})
+
+    @api.post("/alerts")
+    def alerts_add(body: AlertIn) -> dict:
+        a = Alert(body.ticker.strip().upper(), body.metric, body.op, body.threshold)
+        if a.metric not in ("sma50", "sma200") and a.threshold is None:
+            raise HTTPException(422, "Falta el valor del umbral.")
+        engine.svc.get_quote(a.ticker)  # comprueba que existe (404 si no)
+        return {"id": engine.alerts.add(a)}
+
+    @api.delete("/alerts/{alert_id}")
+    def alerts_delete(alert_id: int) -> dict:
+        engine.alerts.delete(alert_id)
+        return {"ok": True}
+
+    @api.put("/alerts/{alert_id}/active")
+    def alerts_active(alert_id: int, active: bool) -> dict:
+        engine.alerts.set_active(alert_id, active)
+        return {"ok": True}
+
+    @api.post("/alerts/check")
+    def alerts_check() -> dict:
+        return {"fired": engine.check_alerts()}
+
+    @api.post("/alerts/seen")
+    def alerts_seen() -> dict:
+        engine.alerts.mark_all_seen()
+        return {"ok": True}
 
     # --- Contenido educativo y metodología --------------------------------------------
 
