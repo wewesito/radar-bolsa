@@ -66,6 +66,7 @@ class Fundamentals:
     country: str | None
     currency: str | None
     metrics: dict[str, float | None] = field(default_factory=dict)
+    fund_family: str | None = None  # gestora, solo ETFs
     last_report: datetime | None = None  # último trimestre reportado
     as_of: datetime | None = None  # cuándo se descargó
     source: str = ""

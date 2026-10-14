@@ -71,3 +71,10 @@ def test_debt_to_equity_percent_to_ratio():
 @pytest.mark.parametrize("bad", ["Infinity", float("nan"), "n/a"])
 def test_metrics_reject_non_finite(bad):
     assert parse_metrics({"trailingPE": bad})["pe_trailing"] is None
+
+
+def test_etf_metrics_units():
+    m = parse_metrics({"netExpenseRatio": 0.2, "ytdReturn": 12.5, "threeYearAverageReturn": 0.23})
+    assert m["expense_ratio"] == pytest.approx(0.002)
+    assert m["ytd_return"] == pytest.approx(0.125)
+    assert m["return_3y"] == pytest.approx(0.23)
