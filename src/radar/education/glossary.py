@@ -409,6 +409,133 @@ ENTRIES: list[Entry] = [
         "No entiende contexto ni ironía. Cuando una noticia sale en prensa, el mercado ya "
         "suele haberla descontado en el precio.",
     ),
+    # --- Rediseño: rentabilidad del negocio, dividendo y plazos ------------------------
+    Entry(
+        "roic",
+        "ROIC (rentabilidad sobre el capital invertido)",
+        "Rentabilidad",
+        "Cuánto beneficio genera cada euro invertido en el negocio, tanto si lo pusieron "
+        "los accionistas como los bancos.",
+        "EBIT × (1 − tipo impositivo efectivo) / (deuda total + patrimonio neto − caja), "
+        "con las cuentas del último ejercicio anual.",
+        "Por encima del 10–12 % suele indicar un negocio con ventajas frente a la "
+        "competencia; si es menor que el coste de su financiación, el crecimiento destruye valor.",
+        "No tiene sentido en bancos y aseguradoras (su 'deuda' es su materia prima). Un año "
+        "con resultados extraordinarios lo distorsiona.",
+    ),
+    Entry(
+        "payout_ratio",
+        "Payout (tasa de reparto)",
+        "Dividendo",
+        "Qué parte del beneficio se destina a pagar dividendos.",
+        "Dividendos por acción / beneficio por acción.",
+        "Entre el 30 % y el 70 % suele ser cómodo. Por encima del 90–100 % el dividendo "
+        "depende de que el beneficio no baje, o se paga con deuda.",
+        "En empresas con beneficios muy variables o con muchas amortizaciones (eléctricas, "
+        "inmobiliarias) conviene mirarlo junto al flujo de caja.",
+    ),
+    Entry(
+        "div_years",
+        "Años seguidos con dividendo",
+        "Dividendo",
+        "Cuántos años naturales consecutivos ha pagado al menos un dividendo.",
+        "Se cuentan hacia atrás desde el último año completo los años con algún pago.",
+        "Un historial largo indica una política de dividendo estable.",
+        "Solo mira si pagó, no si el dividendo subió o bajó. El historial de Yahoo empieza "
+        "como pronto en 2000.",
+    ),
+    Entry(
+        "ret_ytd",
+        "Rentabilidad en lo que va de año",
+        "Rentabilidad bursátil",
+        "Cuánto ha subido o bajado el precio desde el 31 de diciembre pasado.",
+        "Último cierre / cierre del último día del año anterior − 1.",
+        "Sirve para ver el año en curso; a principios de año dice poco.",
+        "No incluye dividendos. Un año aislado dice poco sobre la calidad de una empresa.",
+    ),
+    Entry(
+        "ret_1y",
+        "Rentabilidad a 1 año",
+        "Rentabilidad bursátil",
+        "Variación del precio en los últimos 12 meses.",
+        "Último cierre / cierre de hace 12 meses − 1 (sin dividendos).",
+        "Compárala con su índice o su sector, no en el vacío.",
+        "Rentabilidades pasadas no garantizan las futuras.",
+    ),
+    Entry(
+        "ret_3y",
+        "Rentabilidad a 3 años",
+        "Rentabilidad bursátil",
+        "Variación del precio en los últimos 3 años (acumulada, no anual).",
+        "Último cierre / cierre de hace 3 años − 1 (sin dividendos).",
+        "Para pasarla a ritmo anual: (1 + r)^(1/3) − 1.",
+        "Depende mucho del punto de partida: si hace 3 años estaba en mínimos, sale alta.",
+    ),
+    Entry(
+        "ret_5y",
+        "Rentabilidad a 5 años",
+        "Rentabilidad bursátil",
+        "Variación del precio en los últimos 5 años (acumulada, no anual).",
+        "Último cierre / cierre de hace 5 años − 1 (sin dividendos).",
+        "Un plazo más representativo que 1 año, aunque sigue dependiendo del punto de partida.",
+        "En empresas con mucho dividendo infravalora lo que ganó el accionista: mira la total.",
+    ),
+    Entry(
+        "tr_1y",
+        "Rentabilidad total a 1 año",
+        "Rentabilidad bursátil",
+        "Lo que habría ganado un accionista en 12 meses, sumando los dividendos.",
+        "Se usa el precio ajustado por dividendos: cada dividendo se reinvierte en la acción "
+        "el día en que se cobra.",
+        "Es la medida justa para comparar empresas que reparten mucho con otras que no.",
+        "No descuenta impuestos ni comisiones.",
+    ),
+    Entry(
+        "tr_5y",
+        "Rentabilidad total a 5 años",
+        "Rentabilidad bursátil",
+        "Lo que habría ganado un accionista en 5 años, sumando los dividendos reinvertidos.",
+        "Último precio ajustado / precio ajustado de hace 5 años − 1.",
+        "Es la mejor medida de lo que realmente ha ganado quien tenía la acción.",
+        "No descuenta impuestos (en España, retención del 19 % sobre dividendos) ni comisiones.",
+    ),
+    Entry(
+        "model_label",
+        "Señal del modelo: Comprar, Vigilar o Evitar",
+        "Herramientas de la app",
+        "Una etiqueta que resume, con reglas fijas, la puntuación, la valoración y el riesgo "
+        "de un valor frente a tu perfil.",
+        "Comprar: puntuación ≥ 65, precio dentro o por debajo del rango de entrada y riesgo "
+        "dentro de tu tolerancia. Evitar: puntuación < 40 o riesgo dos niveles por encima "
+        "de tu tolerancia. Vigilar: el resto.",
+        "Úsala como punto de partida para estudiar el valor, no como orden.",
+        "La genera un modelo propio con datos públicos y pesos subjetivos. No garantiza "
+        "rentabilidad ni sustituye a un asesor financiero.",
+    ),
+    Entry(
+        "risk_level",
+        "Nivel de riesgo (bajo, medio, alto)",
+        "Herramientas de la app",
+        "Cuánto oscila el precio y cuánto ha llegado a caer en el último año.",
+        "Bajo: volatilidad < 20 % y caída máxima menor del 20 %. Medio: volatilidad < 32 % y "
+        "caída menor del 35 %. Alto: el resto.",
+        "Un riesgo bajo significa sustos más pequeños, no ausencia de pérdidas.",
+        "Mira el pasado reciente. Una sola acción tiene además riesgo de empresa (resultados, "
+        "litigios) que un ETF diversificado reparte.",
+    ),
+    Entry(
+        "entry_range",
+        "Rango de entrada razonable",
+        "Herramientas de la app",
+        "Entre qué precios cotizaría el valor si tuviera los múltiplos típicos de su sector.",
+        "Se estima el precio con el PER, el precio/valor contable y la rentabilidad por flujo "
+        "de caja medianos de sus comparables. El rango va de la estimación más baja a la "
+        "central (mediana).",
+        "Precio por debajo o dentro del rango: no paga más que sus comparables. Por encima: "
+        "el mercado le exige más.",
+        "Es una valoración relativa: si todo el sector está caro, el rango también. Si las "
+        "estimaciones difieren mucho entre sí, no se da rango.",
+    ),
 ]
 
 

@@ -1,9 +1,14 @@
 """Universo de referencia: empresas con las que se calculan las medianas por sector.
 
+Incluye todo el IBEX 35 y el Mercado Continuo (sección España) y los ETFs de
+`radar.etfs`.
+
 No pretende ser "el mercado": es una muestra de grandes empresas líquidas, suficiente para
 tener varios comparables por sector en Europa y EE. UU. Revisar la composición una vez al año
 (los índices cambian; un ticker que deje de existir simplemente se descarta al construir).
 """
+
+from radar.etfs import ETF_TICKERS
 
 IBEX35 = [
     "ACS.MC",
@@ -158,4 +163,37 @@ SECTOR_FILL = [
     "PSA",
 ]
 
-UNIVERSE: list[str] = list(dict.fromkeys(IBEX35 + EUROSTOXX50_EX_ES + US_LARGE + SECTOR_FILL))
+# Mercado Continuo sin el IBEX 35. Comprobado contra Yahoo el 14/10/2026 (ticker con datos
+# y bolsa MCE). Quedan fuera los valores de BME Growth, que Yahoo también marca como MCE,
+# y los excluidos de cotización (Catalana Occidente, NH, Lar España, Alba, Borges...).
+# Revisar una vez al año: un ticker que deje de existir se descarta al construir.
+CONTINUO = [
+    "A3M.MC", "ADX.MC", "ADZ.MC", "AEDAS.MC", "AI.MC", "ALM.MC", "ALNT.MC", "AMP.MC",
+    "ART.MC", "ATRY.MC", "AZK.MC", "BKY.MC", "CAF.MC", "CASH.MC", "CBAV.MC", "CCEP.MC",
+    "CIE.MC", "CIRSA.MC", "CLEO.MC", "COXG.MC", "DIA.MC", "DOM.MC", "EAT.MC", "EBRO.MC",
+    "ECR.MC", "EDR.MC", "ENC.MC", "ENER.MC", "ENO.MC", "EZE.MC", "FAE.MC", "FCC.MC",
+    "GAM.MC", "GEST.MC", "GRE.MC", "GSJ.MC", "HBX.MC", "HOME.MC", "IBG.MC", "ISUR.MC",
+    "LDA.MC", "LGT.MC", "LIB.MC", "MCM.MC", "MDF.MC", "MEL.MC", "MTB.MC", "MVC.MC",
+    "NEA.MC", "NTH.MC", "NXT.MC", "OHLA.MC", "OLE.MC", "ORY.MC", "PHM.MC", "PRM.MC",
+    "PRS.MC", "PSG.MC", "R4.MC", "REN.MC", "RIO.MC", "RJF.MC", "RLIA.MC", "SOL.MC",
+    "SQRL.MC", "TLGO.MC", "TRE.MC", "TRG.MC", "TUB.MC", "UBS.MC", "VID.MC", "VIS.MC",
+    "VOC.MC",
+]  # fmt: skip
+
+SPAIN = IBEX35 + CONTINUO
+
+STOCKS: list[str] = list(
+    dict.fromkeys(IBEX35 + CONTINUO + EUROSTOXX50_EX_ES + US_LARGE + SECTOR_FILL)
+)
+
+
+def spain_index(ticker: str) -> str | None:
+    """'IBEX 35', 'Mercado Continuo' o None si no es un valor español del universo."""
+    if ticker in IBEX35:
+        return "IBEX 35"
+    if ticker in CONTINUO:
+        return "Mercado Continuo"
+    return None
+
+
+UNIVERSE: list[str] = STOCKS + ETF_TICKERS

@@ -118,6 +118,16 @@ EQUITY_METRICS: list[MetricDef] = [
         "Un ROE alto con mucha deuda es menos meritorio.",
     ),
     MetricDef(
+        "roic",
+        "ROIC",
+        "pct",
+        "Rentabilidad",
+        "higher",
+        "Beneficio operativo después de impuestos / capital invertido (deuda + patrimonio − "
+        "caja). Cuánto rinde cada euro metido en el negocio, venga de donde venga. No aplica "
+        "a bancos ni aseguradoras.",
+    ),
+    MetricDef(
         "revenue_growth",
         "Crecimiento ventas",
         "pct",
@@ -168,6 +178,15 @@ EQUITY_METRICS: list[MetricDef] = [
         None,
         "Dividendo anual / precio. Un valor muy alto puede indicar que el precio ha "
         "caído por problemas (y el dividendo podría recortarse).",
+    ),
+    MetricDef(
+        "payout_ratio",
+        "Payout",
+        "pct",
+        "Dividendo",
+        "lower",
+        "Parte del beneficio que se reparte como dividendo. Por encima del 100 % la empresa "
+        "paga más de lo que gana: no es sostenible mucho tiempo.",
     ),
     MetricDef(
         "beta",
@@ -272,7 +291,69 @@ PRICE_METRICS: list[MetricDef] = [
     ),
 ]
 
-ALL_METRICS: dict[str, MetricDef] = {m.key: m for m in EQUITY_METRICS + ETF_METRICS + PRICE_METRICS}
+# Rentabilidades a varios plazos e historial de dividendos (indicators.performance)
+PERFORMANCE_METRICS: list[MetricDef] = [
+    MetricDef(
+        "ret_ytd",
+        "En el año",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Variación del precio desde el último cierre del año pasado.",
+    ),
+    MetricDef(
+        "ret_1y",
+        "1 año",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Variación del precio en los últimos 12 meses, sin dividendos.",
+    ),
+    MetricDef(
+        "ret_3y",
+        "3 años",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Variación del precio en los últimos 3 años, sin dividendos.",
+    ),
+    MetricDef(
+        "ret_5y",
+        "5 años",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Variación del precio en los últimos 5 años, sin dividendos.",
+    ),
+    MetricDef(
+        "tr_1y",
+        "Total 1 año",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Rentabilidad de 12 meses sumando los dividendos reinvertidos.",
+    ),
+    MetricDef(
+        "tr_5y",
+        "Total 5 años",
+        "pct",
+        "Rentabilidad bursátil",
+        "higher",
+        "Rentabilidad de 5 años sumando los dividendos reinvertidos.",
+    ),
+    MetricDef(
+        "div_years",
+        "Años con dividendo",
+        "ratio",
+        "Dividendo",
+        "higher",
+        "Años naturales seguidos, hasta el último completo, en los que ha pagado dividendo.",
+    ),
+]
+
+ALL_METRICS: dict[str, MetricDef] = {
+    m.key: m for m in EQUITY_METRICS + ETF_METRICS + PRICE_METRICS + PERFORMANCE_METRICS
+}
 
 
 def metrics_for(quote_type: str | None) -> list[MetricDef]:

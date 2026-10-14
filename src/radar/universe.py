@@ -1,7 +1,12 @@
-"""Construcción y carga del universo de referencia (foto de fundamentales de ~120 empresas).
+"""Construcción y carga del universo de referencia (foto de fundamentales y precios).
 
 La foto se guarda en la caché con su fecha. No caduca sola: se muestra su antigüedad y el
 usuario decide cuándo reconstruirla (los fundamentales cambian trimestralmente).
+
+- Todos los valores: fundamentales + estadísticas de precio (momentum y riesgo).
+- Valores españoles y ETFs: además, todo el histórico diario para rentabilidades a 3 y
+  5 años y el historial de dividendos.
+- Valores españoles: además, las cuentas anuales para el ROIC.
 """
 
 from collections.abc import Callable
@@ -15,14 +20,39 @@ import pandas as pd
 from radar.data.cache import Cache
 from radar.data.service import MarketDataService
 from radar.errors import RadarError
+from radar.etfs import BY_TICKER as ETF_INFO
 from radar.fundamentals.sector import add_derived, region_for
+from radar.indicators.performance import (
+    dividend_sustainability,
+    dividend_years,
+    period_returns,
+    roic,
+)
 from radar.indicators.risk import price_stats
 from radar.models import Fundamentals
-from radar.universe_list import UNIVERSE
+from radar.universe_list import UNIVERSE, spain_index
 
-SNAPSHOT_KEY = "universe:snapshot:v3"  # v2: + estadísticas de precio; v3: + moneda
+# v2: + estadísticas de precio; v3: + moneda; v4: + España, ETFs, precio, plazos y ROIC
+SNAPSHOT_KEY = "universe:snapshot:v4"
 STALE_AFTER_DAYS = 7
-TEXT_COLUMNS = ["ticker", "name", "sector", "industry", "country", "currency", "region"]
+TEXT_COLUMNS = [
+    "ticker",
+    "name",
+    "quote_type",
+    "sector",
+    "industry",
+    "country",
+    "currency",
+    "price_currency",
+    "region",
+    "spain_index",
+    "div_sustainability",
+    "history_as_of",
+    "fundamentals_as_of",
+    "last_report",
+]
+# Sin fundamentales de negocio en bancos y aseguradoras (su deuda es su materia prima).
+NO_ROIC_SECTORS = {"Financial Services"}
 
 
 @dataclass(frozen=True)
@@ -36,26 +66,56 @@ class UniverseSnapshot:
         return (datetime.now(UTC) - self.built_at).total_seconds() / 86400
 
 
+def _iso(dt: datetime | None) -> str | None:
+    return dt.isoformat() if dt else None
+
+
 def fundamentals_row(f: Fundamentals) -> dict:
     """Fila plana (ticker, sector, región y métricas) para un DataFrame de comparables."""
     return {
         "ticker": f.ticker,
         "name": f.name,
+        "quote_type": f.quote_type,
         "sector": f.sector,
         "industry": f.industry,
         "country": f.country,
         "currency": f.currency,
+        "price_currency": f.price_currency or f.currency,
         "region": region_for(f.ticker),
+        "spain_index": spain_index(f.ticker),
+        "fundamentals_as_of": _iso(f.as_of),
+        "last_report": _iso(f.last_report),
         **add_derived(f.metrics),
     }
 
 
+def needs_long_history(ticker: str) -> bool:
+    return spain_index(ticker) is not None or ticker in ETF_INFO
+
+
 def company_row(svc: MarketDataService, ticker: str) -> dict:
-    """Fundamentales + estadísticas de precio (2 años diarios) de una empresa."""
-    row = fundamentals_row(svc.get_fundamentals(ticker))
-    # Sin histórico, momentum y riesgo quedan sin dato (el score lo indica).
+    """Fila completa de un valor. Sin histórico, momentum y riesgo quedan sin dato."""
+    f = svc.get_fundamentals(ticker)
+    row = fundamentals_row(f)
+    long = needs_long_history(ticker)
     with suppress(RadarError):
-        row.update(price_stats(svc.get_history(ticker, "2A").data["Close"]))
+        hist = svc.get_history(ticker, "MAXd" if long else "2A")
+        data = hist.data
+        row["history_as_of"] = _iso(hist.as_of)
+        price_col = data["PriceClose"] if "PriceClose" in data else data["Close"]
+        row["price"] = float(price_col.iloc[-1])
+        row.update(price_stats(data["Close"]))
+        if long:
+            row.update(period_returns(price_col, data["Close"]))
+            if "Dividends" in data:
+                row["div_years"] = float(dividend_years(data["Dividends"], data.index[-1]))
+    if row["spain_index"] and f.quote_type == "EQUITY" and f.sector not in NO_ROIC_SECTORS:
+        with suppress(RadarError):
+            row["roic"] = roic(svc.get_financials(ticker).items)
+    if row["spain_index"]:
+        row["div_sustainability"] = dividend_sustainability(
+            row.get("payout_ratio"), row.get("dividend_yield"), int(row.get("div_years") or 0)
+        )
     return row
 
 
