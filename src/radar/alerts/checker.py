@@ -72,17 +72,22 @@ def notify_macos(message: str) -> None:
     )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description="Comprueba las alertas de Radar Bolsa.")
-    parser.add_argument("--notify", action="store_true", help="Notificación de macOS")
-    args = parser.parse_args()
+def run(notify: bool) -> list[str]:
+    """Comprueba las alertas una vez (lo usa también el agente de launchd)."""
     msgs = check_all(default_service(), AlertsRepo(Database(config.DB_PATH)))
     for m in msgs:
         print(m)
-        if args.notify:
+        if notify:
             notify_macos(m)
     if not msgs:
         print("Ninguna alerta disparada.")
+    return msgs
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="Comprueba las alertas de Radar Bolsa.")
+    parser.add_argument("--notify", action="store_true", help="Notificación de macOS")
+    run(parser.parse_args().notify)
 
 
 if __name__ == "__main__":

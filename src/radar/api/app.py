@@ -18,6 +18,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from radar import __version__, recommend, scoring
+from radar.alerts import background
 from radar.alerts.rules import METRIC_LABELS, Alert, describe
 from radar.api.state import Engine, NoProfileError, NoUniverseError
 from radar.backtest import engine as backtest_engine
@@ -127,6 +128,10 @@ class TradeIn(BaseModel):
     fee: float = Field(default=0, ge=0)
     date: datetime_date
     note: str | None = Field(default=None, max_length=300)
+
+
+class BackgroundIn(BaseModel):
+    enabled: bool
 
 
 class AlertIn(BaseModel):
@@ -624,6 +629,15 @@ def create_app(engine: Engine, token: str) -> FastAPI:
         }
 
     # --- Ajustes ----------------------------------------------------------------------
+
+    @api.get("/settings/background-alerts")
+    def background_alerts() -> dict:
+        return {"enabled": background.is_enabled(), "interval_minutes": 15}
+
+    @api.put("/settings/background-alerts")
+    def put_background_alerts(body: BackgroundIn) -> dict:
+        (background.enable if body.enabled else background.disable)()
+        return {"enabled": background.is_enabled(), "interval_minutes": 15}
 
     @api.get("/settings/secrets")
     def secrets() -> dict:

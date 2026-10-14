@@ -36,6 +36,11 @@ def _watch_parent() -> None:
 
 
 def main(argv: list[str] | None = None) -> None:
+    if "--check-alerts" in (argv if argv is not None else sys.argv[1:]):
+        from radar.alerts.checker import run  # lo lanza launchd con la app cerrada
+
+        run(notify=True)
+        return
     ap = argparse.ArgumentParser(prog="radar-engine")
     ap.add_argument("--port", type=int, default=0)
     ap.add_argument("--token", default=os.getenv("RADAR_TOKEN"))

@@ -281,3 +281,16 @@ def test_signal_log_and_track(qclient):
     body = c.get("/api/signals/track").json()
     assert body["days_logged"] == 1 and body["horizons"] == []  # aún no han pasado 30 días
     assert c.get("/api/signals/track").json()["days_logged"] == 1  # una foto por día
+
+
+def test_background_alerts_setting(qclient, monkeypatch):
+    from radar.alerts import background
+
+    state = {"on": False}
+    monkeypatch.setattr(background, "is_enabled", lambda: state["on"])
+    monkeypatch.setattr(background, "enable", lambda: state.update(on=True))
+    monkeypatch.setattr(background, "disable", lambda: state.update(on=False))
+    c = qclient
+    assert c.get("/api/settings/background-alerts").json()["enabled"] is False
+    assert c.put("/api/settings/background-alerts", json={"enabled": True}).json()["enabled"]
+    assert not c.put("/api/settings/background-alerts", json={"enabled": False}).json()["enabled"]

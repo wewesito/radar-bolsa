@@ -214,6 +214,17 @@ export function Ajustes({ status, onRebuild }: { status?: UniverseStatus; onRebu
       setMsg((e as Error).message);
     }
   };
+  const bg = useApi<{ enabled: boolean; interval_minutes: number }>("/api/settings/background-alerts");
+  const [bgMsg, setBgMsg] = useState<string | null>(null);
+  const setBackground = async (enabled: boolean) => {
+    setBgMsg(null);
+    try {
+      await api("/api/settings/background-alerts", { method: "PUT", body: JSON.stringify({ enabled }) });
+      bg.reload();
+    } catch (e) {
+      setBgMsg((e as Error).message);
+    }
+  };
   const b = status?.build;
   return (
     <div className="stack" style={{ gap: 20, maxWidth: 760 }}>
@@ -234,6 +245,17 @@ export function Ajustes({ status, onRebuild }: { status?: UniverseStatus; onRebu
         )}
         {b?.error && <div className="error-box small">{b.error}</div>}
         {status && status.failed.length > 0 && <p className="tiny muted">Sin datos en la última descarga: {status.failed.join(", ")}.</p>}
+      </section>
+      <section className="card stack">
+        <h2>Alertas con la app cerrada</h2>
+        <p className="muted small" style={{ lineHeight: 1.5 }}>
+          Por defecto, las alertas solo se comprueban con la app abierta. Si lo activas, macOS ejecuta una comprobación cada {bg.data?.interval_minutes ?? 15} minutos mientras tengas la sesión iniciada y te avisa con una notificación. Se instala como un agente de usuario (no necesita contraseña) y puedes desactivarlo aquí cuando quieras.
+        </p>
+        <div className="row wrap">
+          <span className={`pill ${bg.data?.enabled ? "tone-buy" : "tone-neutral"}`}>{bg.data?.enabled ? "Activadas" : "Desactivadas"}</span>
+          <button className="btn" disabled={!bg.data} onClick={() => setBackground(!bg.data?.enabled)}>{bg.data?.enabled ? "Desactivar" : "Activar"}</button>
+        </div>
+        {bgMsg && <div className="error-box small" role="alert">{bgMsg}</div>}
       </section>
       <section className="card stack">
         <h2>API keys</h2>
