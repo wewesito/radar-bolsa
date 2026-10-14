@@ -18,7 +18,9 @@ class WatchlistRepo:
 
     def list(self) -> list[WatchItem]:
         with self.db.connect() as con:
-            rows = con.execute("SELECT ticker, name, added_at FROM watchlist ORDER BY added_at, rowid")
+            rows = con.execute(
+                "SELECT ticker, name, added_at FROM watchlist ORDER BY added_at, rowid"
+            )
             return [WatchItem(**dict(r)) for r in rows]
 
     def tickers(self) -> list[str]:

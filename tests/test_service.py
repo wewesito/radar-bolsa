@@ -34,14 +34,27 @@ class FakeProvider:
             raise self.fail
         if ticker == "NOPE":
             raise TickerNotFoundError(ticker)
-        return Quote(ticker, "Test SA", 10.0 + self.calls, 10.0, 100, "EUR", "MCE",
-                     "EQUITY", "REGULAR", 15, T0, "Fake")
+        return Quote(
+            ticker,
+            "Test SA",
+            10.0 + self.calls,
+            10.0,
+            100,
+            "EUR",
+            "MCE",
+            "EQUITY",
+            "REGULAR",
+            15,
+            T0,
+            "Fake",
+        )
 
     def get_history(self, ticker, range_key):
         self.calls += 1
         idx = pd.date_range("2026-10-01", periods=3, freq="D", tz="UTC")
-        df = pd.DataFrame({"Open": 1.0, "High": 2.0, "Low": 0.5, "Close": 1.5, "Volume": 10},
-                          index=idx)
+        df = pd.DataFrame(
+            {"Open": 1.0, "High": 2.0, "Low": 0.5, "Close": 1.5, "Volume": 10}, index=idx
+        )
         return PriceHistory(ticker, range_key, "1d", df, T0, "Fake")
 
     def get_fundamentals(self, ticker):

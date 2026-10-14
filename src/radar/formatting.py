@@ -44,11 +44,13 @@ def fmt_big(x: float | None, currency: str | None = None) -> str:
     return f"{sign}{body}{sym}" if len(sym) == 1 else f"{sign}{body} {sym}".rstrip()
 
 
-def fmt_price(x: float | None, currency: str | None = None) -> str:
+def fmt_price(x: float | None, currency: str | None = None, decimals: int | None = None) -> str:
+    """Precio con 2 decimales (4 si vale menos de 1, como algunas acciones en céntimos)."""
     if x is None:
         return NA
     sym = CURRENCY_SYMBOLS.get(currency or "", currency or "")
-    decimals = 2 if x >= 1 else 4
+    if decimals is None:
+        decimals = 2 if abs(x) >= 1 else 4
     return f"{fmt_number(x, decimals)} {sym}".rstrip()
 
 
@@ -58,3 +60,14 @@ def fmt_dt(dt: datetime | None, with_date: bool = True) -> str:
         return NA
     local = dt.astimezone(ZoneInfo(DISPLAY_TZ))
     return local.strftime("%d/%m/%Y %H:%M" if with_date else "%H:%M:%S")
+
+
+def fmt_age(seconds: float) -> str:
+    """Antigüedad legible: 45 → 'hace <1 min', 900 → 'hace 15 min', 7200 → 'hace 2 h'."""
+    if seconds < 60:
+        return "hace <1 min"
+    if seconds < 3600:
+        return f"hace {int(seconds // 60)} min"
+    if seconds < 86400:
+        return f"hace {int(seconds // 3600)} h"
+    return f"hace {int(seconds // 86400)} d"
