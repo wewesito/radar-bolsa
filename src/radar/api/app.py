@@ -424,7 +424,7 @@ def create_app(engine: Engine, token: str) -> FastAPI:
         labels: dict[str, str] = {}
         if engine.answers() is not None and engine.snapshot is not None:
             recs = {r.ticker: r for r in engine.recommendations(engine.profile())}
-            labels = {t: LABEL_ES[r.label] for t, r in recs.items()}
+            labels = {t: r.label for t, r in recs.items()}
         for p in view["positions"]:
             p["label"] = labels.get(p["ticker"])
         view["benchmarks"] = [{"ticker": t, "name": n} for n, t in BENCHMARKS.items()]

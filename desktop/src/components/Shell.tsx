@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { api, useApi } from "../api";
 import type { SearchResult, UniverseStatus } from "../types";
 import {
+  IconBell,
   IconBook,
   IconCap,
   IconFlag,
@@ -26,6 +27,7 @@ export type Page =
   | { name: "detalle"; ticker: string }
   | { name: "espana" }
   | { name: "cartera" }
+  | { name: "alertas" }
   | { name: "invertir" }
   | { name: "aprender" }
   | { name: "metodologia" }
@@ -36,7 +38,8 @@ const NAV: { name: Page["name"]; label: string; icon: ReactNode; soon?: string }
   { name: "inicio", label: "Inicio", icon: <IconHome /> },
   { name: "recs", label: "Mis recomendaciones", icon: <IconTarget /> },
   { name: "espana", label: "España", icon: <IconFlag /> },
-  { name: "cartera", label: "Mi cartera", icon: <IconWallet />, soon: "Pronto" },
+  { name: "cartera", label: "Mi cartera", icon: <IconWallet /> },
+  { name: "alertas", label: "Alertas", icon: <IconBell /> },
   { name: "invertir", label: "Cómo invertir", icon: <IconBook /> },
   { name: "aprender", label: "Aprender", icon: <IconCap /> },
   { name: "metodologia", label: "Metodología", icon: <IconSliders /> },

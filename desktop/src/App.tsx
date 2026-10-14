@@ -3,9 +3,11 @@ import { api, invalidate, useApi } from "./api";
 import { IconRadar } from "./components/Icons";
 import { Sidebar, Topbar, useUniverseStatus, type Page } from "./components/Shell";
 import { Disclaimer, ErrorBox, GlossaryProvider } from "./components/ui";
+import { Alertas } from "./pages/Alertas";
+import { Cartera } from "./pages/Cartera";
 import { Detalle } from "./pages/Detalle";
 import { Espana } from "./pages/Espana";
-import { Ajustes, Aprender, Inicio, Proximamente } from "./pages/Otras";
+import { Ajustes, Aprender, Inicio } from "./pages/Otras";
 import { Invertir } from "./pages/Invertir";
 import { Metodologia } from "./pages/Metodologia";
 import { Perfil } from "./pages/Perfil";
@@ -18,7 +20,7 @@ type Theme = "light" | "dark";
 function pageFromHash(): Page {
   const [name, arg] = window.location.hash.replace(/^#\/?/, "").split("/");
   if (name === "detalle" && arg) return { name: "detalle", ticker: decodeURIComponent(arg) };
-  const simple = ["inicio", "recs", "espana", "cartera", "invertir", "aprender", "metodologia", "perfil", "ajustes"];
+  const simple = ["inicio", "recs", "espana", "cartera", "alertas", "invertir", "aprender", "metodologia", "perfil", "ajustes"];
   return simple.includes(name) ? ({ name } as Page) : { name: "recs" };
 }
 
@@ -147,8 +149,8 @@ export function App() {
   else if (page.name === "ajustes") body = <Ajustes status={status} onRebuild={rebuild} />;
   else if (page.name === "aprender") body = <Aprender />;
   else if (page.name === "metodologia") body = <Metodologia />;
-  else if (page.name === "cartera")
-    body = <Proximamente title="Mi cartera" text="La cartera simulada (operaciones, valoración en euros y comparación con un índice) y las alertas con notificaciones de escritorio llegan en la fase 4. Mientras tanto siguen disponibles en la versión anterior (Streamlit)." />;
+  else if (page.name === "cartera") body = <Cartera />;
+  else if (page.name === "alertas") body = <Alertas />;
   else body = <Invertir />;
 
   return (

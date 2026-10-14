@@ -538,6 +538,42 @@ ENTRIES: list[Entry] = [
         "Es una valoración relativa: si todo el sector está caro, el rango también. Si las "
         "estimaciones difieren mucho entre sí, no se da rango.",
     ),
+    # --- Cartera simulada -------------------------------------------------------------
+    Entry(
+        "portfolio_return",
+        "Rentabilidad total de la cartera",
+        "Cartera",
+        "Cuánto has ganado o perdido en total con tus operaciones ficticias, en porcentaje de "
+        "lo que has invertido.",
+        "(Ganancia latente + ganancia realizada) / suma de todas tus compras, con comisiones, "
+        "en euros. Las ventas se calculan con el método FIFO (se venden primero las más antiguas).",
+        "Positiva: has ganado. No distingue cuándo entró el dinero: para eso compara con la "
+        "cartera sombra.",
+        "Incluye el efecto del tipo de cambio en valores no europeos. No incluye impuestos.",
+    ),
+    Entry(
+        "shadow_portfolio",
+        "Cartera sombra (comparación con un índice)",
+        "Cartera",
+        "Lo que tendrías si, cada vez que metes o sacas dinero en tu cartera, hicieras lo "
+        "mismo ese día en un índice.",
+        "Cada aportación se invierte el mismo día en el ETF del índice elegido (en euros y "
+        "con dividendos); las ventas lo reducen en la misma proporción.",
+        "Si tu cartera queda por encima, tus decisiones han aportado algo sobre el índice; "
+        "por debajo, comprar el índice habría rendido más.",
+        "Pocas operaciones o poco tiempo dan resultados poco concluyentes. El IBEX 35 no "
+        "incluye dividendos en este cálculo.",
+    ),
+    Entry(
+        "effective_positions",
+        "Número efectivo de posiciones",
+        "Cartera",
+        "Cuántas posiciones iguales equivaldría tu cartera en cuanto a concentración.",
+        "1 / Σ (peso de cada posición)². Con 10 posiciones iguales sale 10.",
+        "Cuanto más cerca esté del número real de posiciones, más repartido está el dinero. "
+        "Si una posición pesa el 90 %, sale cerca de 1 aunque tengas muchas.",
+        "Mide el reparto entre posiciones, no entre sectores o países: mira también esos gráficos.",
+    ),
 ]
 
 

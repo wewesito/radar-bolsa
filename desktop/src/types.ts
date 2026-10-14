@@ -261,3 +261,30 @@ export type GuidesData = {
   guides: { key: string; title: string; summary: string; body: string }[];
   concepts: { title: string; body: string }[];
 };
+
+export type PortfolioPosition = {
+  ticker: string; name: string; sector: string | null; country: string | null; currency: string;
+  quantity: number; avg_price: number | null; price: number | null; cost_eur: number;
+  value_eur: number | null; pnl_eur: number | null; pnl_pct: number | null; weight: number | null;
+  price_as_of: string | null; delay_minutes: number | null; label: Label | null;
+};
+
+export type PortfolioData = {
+  summary: { market_value_eur: number; unrealized_eur: number; realized_eur: number; total_return: number | null; total_invested_eur: number; net_contributed_eur: number };
+  positions: PortfolioPosition[];
+  failed: string[];
+  as_of: string;
+  source: string;
+  effective_positions: number | null;
+  by_sector: Record<string, number>;
+  by_country: Record<string, number>;
+  chart: { dates: string[]; value: number[]; contributed: number[]; benchmark: (number | null)[]; benchmark_name: string } | null;
+  benchmarks: { ticker: string; name: string }[];
+  trade_count: number;
+};
+
+export type TradeRow = { id: number; ticker: string; side: "BUY" | "SELL"; quantity: number; price: number; fee: number; currency: string; trade_date: string; note: string | null };
+
+export type AlertRow = { id: number; ticker: string; metric: string; op: string; threshold: number | null; active: boolean; text: string; last_value: number | null; last_checked_at: string | null };
+export type AlertEvent = { id: number; alert_id: number; triggered_at: string; value: number; message: string; seen: boolean };
+export type AlertsData = { alerts: AlertRow[]; events: AlertEvent[]; metrics: Record<string, string> };

@@ -155,3 +155,9 @@ export const IconCheck = ({ size = 16 }: P) => (
     <path d="m5 12 5 5 9-10" />
   </Svg>
 );
+export const IconBell = ({ size }: P) => (
+  <Svg size={size}>
+    <path d="M6 9a6 6 0 0 1 12 0c0 6 2 7 2 7H4s2-1 2-7z" />
+    <path d="M10 20a2 2 0 0 0 4 0" />
+  </Svg>
+);

@@ -1,10 +1,12 @@
 import { useMemo, useState } from "react";
 import { api, useApi } from "../api";
+import { CompoundCalculator, TaxCalculator } from "../components/Calculators";
 import { Sparkline } from "../components/charts";
+import { Markdown } from "../components/Markdown";
 import type { Page } from "../components/Shell";
 import { ErrorBox, LabelPill, Loading, Stamp } from "../components/ui";
 import { fmtDateTime, fmtNum, fmtPct } from "../format";
-import type { GlossaryEntry, MarketTile, RecList, UniverseStatus } from "../types";
+import type { GlossaryEntry, GuidesData, MarketTile, RecList, UniverseStatus } from "../types";
 
 function greeting(): string {
   const h = Number(new Intl.DateTimeFormat("es-ES", { hour: "numeric", hour12: false, timeZone: "Europe/Madrid" }).format(new Date()));
@@ -109,7 +111,10 @@ export function Inicio({ go, status }: { go: (p: Page) => void; status?: Univers
   );
 }
 
-export function Aprender() {
+type Mode = "glosario" | "conceptos" | "calculadoras";
+const MODES: [Mode, string][] = [["glosario", "Glosario de métricas"], ["conceptos", "Conceptos básicos"], ["calculadoras", "Calculadoras"]];
+
+function Glosario() {
   const { data, error, reload } = useApi<{ entries: GlossaryEntry[] }>("/api/glossary");
   const [q, setQ] = useState("");
   const [cat, setCat] = useState("Todas");
@@ -119,13 +124,7 @@ export function Aprender() {
     (e) => (cat === "Todas" || e.category === cat) && (!q || fold(e.term + " " + e.what).includes(fold(q))),
   );
   return (
-    <div className="stack" style={{ gap: 20 }}>
-      <div className="page-head">
-        <div>
-          <h1>Aprender</h1>
-          <p className="muted">Glosario de todas las métricas de la app: qué son, cómo se calculan, cómo leerlas y sus límites.</p>
-        </div>
-      </div>
+    <>
       <div className="search" style={{ flex: "0 1 420px" }}>
         <label>
           <span className="visually-hidden">Buscar en el glosario</span>
@@ -151,7 +150,51 @@ export function Aprender() {
           </article>
         ))}
       </div>
-      <p className="muted small">La sección completa (conceptos, calculadoras y fiscalidad) llegará en la fase 4.</p>
+    </>
+  );
+}
+
+function Conceptos() {
+  const { data, error, reload } = useApi<GuidesData>("/api/guides");
+  return (
+    <>
+      {error && <ErrorBox error={error} onRetry={reload} />}
+      {!data && !error && <Loading count={3} height={120} />}
+      <div className="stack" style={{ gap: 14, maxWidth: 820 }}>
+        {data?.concepts.map((c) => (
+          <details key={c.title} className="card">
+            <summary className="strong" style={{ cursor: "pointer", fontSize: 17 }}>{c.title}</summary>
+            <div style={{ marginTop: 12 }}><Markdown text={c.body} /></div>
+          </details>
+        ))}
+      </div>
+    </>
+  );
+}
+
+export function Aprender() {
+  const [mode, setMode] = useState<Mode>("glosario");
+  return (
+    <div className="stack" style={{ gap: 20 }}>
+      <div className="page-head">
+        <div>
+          <h1>Aprender</h1>
+          <p className="muted">Glosario de todas las métricas, conceptos básicos de inversión y calculadoras. Contenido educativo, no asesoramiento.</p>
+        </div>
+      </div>
+      <div className="row wrap" style={{ gap: 8 }} role="tablist" aria-label="Secciones">
+        {MODES.map(([k, label]) => (
+          <button key={k} role="tab" aria-selected={mode === k} className="chip" aria-pressed={mode === k} onClick={() => setMode(k)}>{label}</button>
+        ))}
+      </div>
+      {mode === "glosario" && <Glosario />}
+      {mode === "conceptos" && <Conceptos />}
+      {mode === "calculadoras" && (
+        <div className="stack" style={{ maxWidth: 820 }}>
+          <CompoundCalculator />
+          <TaxCalculator />
+        </div>
+      )}
     </div>
   );
 }
@@ -217,15 +260,6 @@ export function Ajustes({ status, onRebuild }: { status?: UniverseStatus; onRebu
           No ejecuta operaciones ni se conecta a ningún bróker.
         </p>
       </section>
-    </div>
-  );
-}
-
-export function Proximamente({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="stack" style={{ gap: 16, maxWidth: 720 }}>
-      <h1>{title}</h1>
-      <div className="empty" style={{ textAlign: "left", lineHeight: 1.6 }}>{text}</div>
     </div>
   );
 }
